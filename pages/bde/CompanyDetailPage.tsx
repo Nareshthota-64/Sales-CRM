@@ -11,6 +11,7 @@ import CalendarIcon from '../../components/icons/CalendarIcon';
 import SparklesIcon from '../../components/icons/SparklesIcon';
 import PhoneIcon from '../../components/icons/PhoneIcon';
 import MailIcon from '../../components/icons/MailIcon';
+import HandshakeIcon from '../../components/icons/HandshakeIcon';
 
 // Types & Data (Re-using from CompaniesPage for consistency)
 type AccountHealth = 'Healthy' | 'Needs Attention' | 'At Risk';
@@ -81,7 +82,7 @@ const CompanyDetailPage: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="secondary" leftIcon={<StickyNoteIcon className="w-4 h-4"/>}>Log Interaction</Button>
+                    <Button variant="secondary" onClick={() => navigate(`/deal-room/${company.id}`)} leftIcon={<HandshakeIcon className="w-4 h-4"/>}>Open Deal Room</Button>
                     <Button leftIcon={<PlusIcon className="w-4 h-4"/>}>Create New Deal</Button>
                 </div>
             </header>

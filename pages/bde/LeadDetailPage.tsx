@@ -16,8 +16,23 @@ import PlusIcon from '../../components/icons/PlusIcon';
 
 // Re-using data and types from LeadsPage for consistency
 type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Unqualified' | 'Converted';
+// FIX: Define LeadSource and LeadDetail types to ensure type safety for lead data.
+type LeadSource = 'Webinar' | 'Cold Call' | 'Referral' | 'Website' | 'Advertisement';
+
+interface LeadDetail {
+  id: string;
+  name: string;
+  email: string;
+  company: string;
+  companyLogo: string;
+  status: LeadStatus;
+  value: number;
+  source: LeadSource;
+  assignedTo: string;
+  assignedToName: string;
+}
 const allStatuses: LeadStatus[] = ['New', 'Contacted', 'Qualified', 'Unqualified', 'Converted'];
-const leadsData = [
+const leadsData: LeadDetail[] = [
   { id: 'lead-1', name: 'John Doe', email: 'john.doe@innovatech.com', company: 'Innovatech', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600', status: 'Qualified', value: 50000, source: 'Webinar', assignedTo: '1', assignedToName: 'Amélie Laurent' },
   { id: 'lead-2', name: 'Jane Smith', email: 'jane.s@solutions.com', company: 'Solutions Inc.', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=red&shade=500', status: 'New', value: 75000, source: 'Referral', assignedTo: '2', assignedToName: 'Benoît Dubois' },
   { id: 'lead-3', name: 'Sam Wilson', email: 'sam.wilson@datacorp.co', company: 'DataCorp', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=green&shade=500', status: 'Contacted', value: 20000, source: 'Website', assignedTo: '1', assignedToName: 'Amélie Laurent' },

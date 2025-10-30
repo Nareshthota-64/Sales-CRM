@@ -16,6 +16,35 @@ import EmailComposerPage from './pages/bde/EmailComposerPage';
 import ConversionRequestPage from './pages/bde/ConversionRequestPage';
 import CompaniesPage from './pages/bde/CompaniesPage';
 import CompanyDetailPage from './pages/bde/CompanyDetailPage';
+import MasterDashboardPage from './pages/master/DashboardPage';
+import ConversionRequestsPage from './pages/master/ConversionRequestsPage';
+import MasterCompaniesPage from './pages/master/CompaniesPage';
+import MasterUsersPage from './pages/master/UsersPage';
+import MasterAnalyticsPage from './pages/master/AnalyticsPage';
+import MasterAdminPage from './pages/master/AdminPage';
+import EmailCenterPage from './pages/communications/EmailCenterPage';
+import MeetingsPage from './pages/communications/MeetingsPage';
+import CallLogsPage from './pages/communications/CallLogsPage';
+import InternalChatPage from './pages/chat/InternalChatPage';
+import AiInsightsPage from './pages/analytics/AiInsightsPage';
+import PipelinePage from './pages/analytics/PipelinePage';
+import PredictiveAnalyticsPage from './pages/analytics/PredictiveAnalyticsPage';
+import PerformanceIntelligencePage from './pages/analytics/PerformanceIntelligencePage';
+import ImportExportPage from './pages/tools/ImportExportPage';
+import ReportsPage from './pages/tools/ReportsPage';
+import TemplatesPage from './pages/tools/TemplatesPage';
+import IntegrationsPage from './pages/tools/IntegrationsPage';
+import CompetitorIntelligencePage from './pages/intelligence/CompetitorIntelligencePage';
+import TerritoryManagementPage from './pages/master/TerritoryManagementPage';
+import LeaderboardPage from './pages/gamification/LeaderboardPage';
+import AchievementsPage from './pages/gamification/AchievementsPage';
+import GoalsPage from './pages/gamification/GoalsPage';
+import TrainingPage from './pages/training/TrainingPage';
+import DealRoomPage from './pages/deal-room/DealRoomPage';
+import NotificationCenterPage from './pages/notifications/NotificationCenterPage';
+import NotFoundPage from './pages/errors/NotFoundPage';
+import TrainingSimulatorPage from './pages/training/TrainingSimulatorPage';
+import MaintenancePage from './pages/errors/MaintenancePage';
 
 function App() {
   return (
@@ -27,12 +56,23 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
 
+        {/* System & Error Pages */}
+        <Route path="/maintenance" element={<MaintenancePage />} />
+        <Route path="/404" element={<NotFoundPage />} />
+        <Route path="/500" element={<NotFoundPage />} />
+
         {/* Dashboard Routes */}
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/bde/dashboard" />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="team" element={<TeamDirectoryPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="chat" element={<InternalChatPage />} />
+          <Route path="notifications" element={<NotificationCenterPage />} />
+          <Route path="training" element={<TrainingPage />} />
+          <Route path="training/simulator" element={<TrainingSimulatorPage />} />
+          <Route path="deal-room/:companyId" element={<DealRoomPage />} />
+          
           {/* BDE Routes */}
           <Route path="bde/dashboard" element={<BdeDashboardPage />} />
           <Route path="bde/leads" element={<LeadsPage />} />
@@ -42,10 +82,44 @@ function App() {
           <Route path="bde/conversion/:leadId" element={<ConversionRequestPage />} />
           <Route path="bde/companies" element={<CompaniesPage />} />
           <Route path="bde/companies/:companyId" element={<CompanyDetailPage />} />
+
+          {/* Masterclass Admin Routes */}
+          <Route path="master/dashboard" element={<MasterDashboardPage />} />
+          <Route path="master/conversion-requests" element={<ConversionRequestsPage />} />
+          <Route path="master/companies" element={<MasterCompaniesPage />} />
+          <Route path="master/users" element={<MasterUsersPage />} />
+          <Route path="master/analytics" element={<MasterAnalyticsPage />} />
+          <Route path="master/admin" element={<MasterAdminPage />} />
+          <Route path="master/territories" element={<TerritoryManagementPage />} />
+          
+          {/* Communications Routes */}
+          <Route path="communications/email" element={<EmailCenterPage />} />
+          <Route path="communications/meetings" element={<MeetingsPage />} />
+          <Route path="communications/calls" element={<CallLogsPage />} />
+
+          {/* Strategy & AI Routes */}
+          <Route path="ai/insights" element={<AiInsightsPage />} />
+          <Route path="pipeline" element={<PipelinePage />} />
+          <Route path="analytics/predictive" element={<PredictiveAnalyticsPage />} />
+          <Route path="analytics/performance" element={<PerformanceIntelligencePage />} />
+
+          {/* Intelligence Routes */}
+          <Route path="intelligence/competitors" element={<CompetitorIntelligencePage />} />
+
+          {/* Tools Routes */}
+          <Route path="tools/import-export" element={<ImportExportPage />} />
+          <Route path="tools/reports" element={<ReportsPage />} />
+          <Route path="tools/templates" element={<TemplatesPage />} />
+          <Route path="tools/integrations" element={<IntegrationsPage />} />
+
+          {/* Gamification Routes */}
+          <Route path="gamification/leaderboard" element={<LeaderboardPage />} />
+          <Route path="gamification/achievements" element={<AchievementsPage />} />
+          <Route path="gamification/goals" element={<GoalsPage />} />
         </Route>
 
-        {/* Redirect root to login for any other path */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* Redirect to 404 for any other path */}
+        <Route path="*" element={<Navigate to="/404" />} />
       </Routes>
     </HashRouter>
   );

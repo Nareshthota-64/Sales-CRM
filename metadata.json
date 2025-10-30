@@ -1,5 +1,7 @@
 {
   "name": "BDE AI System",
   "description": "An intelligent, dual-role platform for Business Development Executives (BDEs) and Managers to prospect, qualify leads, and analyze company conversions with AI-powered insights.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "microphone"
+  ]
 }

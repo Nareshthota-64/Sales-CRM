@@ -5,6 +5,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
   variant?: 'primary' | 'secondary';
   leftIcon?: React.ReactNode;
+  size?: 'sm' | 'md';
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -13,14 +14,20 @@ const Button: React.FC<ButtonProps> = ({
   isLoading = false,
   variant = 'primary',
   leftIcon,
+  size = 'md',
   ...props
 }) => {
   const baseClasses = `
-    flex justify-center items-center py-4 px-8 rounded-full shadow-lg text-sm font-bold
+    flex justify-center items-center rounded-full shadow-lg text-sm font-bold
     focus:outline-none focus:ring-2 focus:ring-offset-2
     transition-all duration-300 transform hover:scale-105
     disabled:cursor-not-allowed disabled:opacity-75 disabled:scale-100
   `;
+
+  const sizeClasses = {
+    sm: 'py-2 px-4',
+    md: 'py-4 px-8',
+  };
 
   const variantClasses = {
     primary: `
@@ -41,7 +48,7 @@ const Button: React.FC<ButtonProps> = ({
     <button
       {...props}
       disabled={isLoading || props.disabled}
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
     >
       {isLoading ? (
         <SpinnerIcon className="w-5 h-5" />

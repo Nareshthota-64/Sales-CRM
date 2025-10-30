@@ -70,14 +70,16 @@ const SettingsPage: React.FC = () => {
                                 <h4 className="font-semibold text-slate-700">Export Your Data</h4>
                                 <p className="text-sm text-slate-500">Download a copy of all your account data.</p>
                             </div>
-                            <Button variant="secondary" leftIcon={<DownloadCloudIcon className="w-5 h-5" />}>Export</Button>
+                            {/* FIX: Set button size to 'sm' for a more compact UI within the settings row. */}
+                            <Button size="sm" variant="secondary" leftIcon={<DownloadCloudIcon className="w-5 h-5" />}>Export</Button>
                         </div>
                          <div className="flex items-center justify-between p-4 bg-red-50/50 border border-red-200 rounded-lg">
                             <div>
                                 <h4 className="font-semibold text-red-800">Delete Your Account</h4>
                                 <p className="text-sm text-red-600">This action is permanent and cannot be undone.</p>
                             </div>
-                            <Button variant="secondary" className="!border-red-300 !text-red-700 hover:!bg-red-100" leftIcon={<TrashIcon className="w-5 h-5" />}>Delete</Button>
+                            {/* FIX: Set button size to 'sm' for a more compact UI within the settings row. */}
+                            <Button size="sm" variant="secondary" className="!border-red-300 !text-red-700 hover:!bg-red-100" leftIcon={<TrashIcon className="w-5 h-5" />}>Delete</Button>
                         </div>
                     </div>
                 </div>
