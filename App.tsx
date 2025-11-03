@@ -34,7 +34,6 @@ import ImportExportPage from './pages/tools/ImportExportPage';
 import ReportsPage from './pages/tools/ReportsPage';
 import TemplatesPage from './pages/tools/TemplatesPage';
 import IntegrationsPage from './pages/tools/IntegrationsPage';
-import CompetitorIntelligencePage from './pages/intelligence/CompetitorIntelligencePage';
 import TerritoryManagementPage from './pages/master/TerritoryManagementPage';
 import LeaderboardPage from './pages/gamification/LeaderboardPage';
 import AchievementsPage from './pages/gamification/AchievementsPage';
@@ -42,9 +41,6 @@ import GoalsPage from './pages/gamification/GoalsPage';
 import TrainingPage from './pages/training/TrainingPage';
 import DealRoomPage from './pages/deal-room/DealRoomPage';
 import NotificationCenterPage from './pages/notifications/NotificationCenterPage';
-import NotFoundPage from './pages/errors/NotFoundPage';
-import TrainingSimulatorPage from './pages/training/TrainingSimulatorPage';
-import MaintenancePage from './pages/errors/MaintenancePage';
 
 function App() {
   return (
@@ -56,11 +52,6 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
 
-        {/* System & Error Pages */}
-        <Route path="/maintenance" element={<MaintenancePage />} />
-        <Route path="/404" element={<NotFoundPage />} />
-        <Route path="/500" element={<NotFoundPage />} />
-
         {/* Dashboard Routes */}
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/bde/dashboard" />} />
@@ -70,7 +61,6 @@ function App() {
           <Route path="chat" element={<InternalChatPage />} />
           <Route path="notifications" element={<NotificationCenterPage />} />
           <Route path="training" element={<TrainingPage />} />
-          <Route path="training/simulator" element={<TrainingSimulatorPage />} />
           <Route path="deal-room/:companyId" element={<DealRoomPage />} />
           
           {/* BDE Routes */}
@@ -103,9 +93,6 @@ function App() {
           <Route path="analytics/predictive" element={<PredictiveAnalyticsPage />} />
           <Route path="analytics/performance" element={<PerformanceIntelligencePage />} />
 
-          {/* Intelligence Routes */}
-          <Route path="intelligence/competitors" element={<CompetitorIntelligencePage />} />
-
           {/* Tools Routes */}
           <Route path="tools/import-export" element={<ImportExportPage />} />
           <Route path="tools/reports" element={<ReportsPage />} />
@@ -118,8 +105,8 @@ function App() {
           <Route path="gamification/goals" element={<GoalsPage />} />
         </Route>
 
-        {/* Redirect to 404 for any other path */}
-        <Route path="*" element={<Navigate to="/404" />} />
+        {/* Redirect root to login for any other path */}
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </HashRouter>
   );

@@ -12,6 +12,8 @@ import SettingsIcon from '../../components/icons/SettingsIcon';
 import ExportIcon from '../../components/icons/ExportIcon';
 import HomeIcon from '../../components/icons/HomeIcon';
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon';
+import TaskModal from '../../components/modals/TaskModal';
+import { assigneeAvatars } from '../../components/data/users';
 
 type Status = 'todo' | 'inprogress' | 'completed';
 type Priority = 'Important' | 'Meh' | 'OK' | 'High Priority' | 'Not that important';
@@ -23,6 +25,7 @@ interface Task {
   status: Status;
   comments: number;
   assignees: string[];
+  assigner?: string;
 }
 
 const initialTasks: Task[] = [
@@ -43,11 +46,6 @@ const initialTasks: Task[] = [
   { id: 'task-10', title: 'Onboarded 3 new clients from the finance sector successfully', priority: 'OK', status: 'completed', comments: 10, assignees: ['1', '3', '4'] },
 ];
 
-const assigneeAvatars: { [key: string]: string } = {
-  '1': 'https://i.pravatar.cc/150?img=1', '2': 'https://i.pravatar.cc/150?img=2',
-  '3': 'https://i.pravatar.cc/150?img=3', '4': 'https://i.pravatar.cc/150?img=4',
-  '5': 'https://i.pravatar.cc/150?img=5', '6': 'https://i.pravatar.cc/150?img=6'
-};
 
 const priorityStyles: { [key: string]: string } = {
   'Important': 'text-[#4A3AFF] bg-[#E9E7FF]',
@@ -215,16 +213,42 @@ const RowView: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
 };
 
 const BdeDashboardPage: React.FC = () => {
-    const [tasks, setTasks] = useState<Task[]>(initialTasks);
+    const [tasks, setTasks] = useState<Task[]>([]);
     const [activeView, setActiveView] = useState('Column View');
     const [draggedTask, setDraggedTask] = useState<Task | null>(null);
     const [showFilterMenu, setShowFilterMenu] = useState(false);
     const [showSortMenu, setShowSortMenu] = useState(false);
     const [filterPriority, setFilterPriority] = useState<Priority | 'All'>('All');
     const [sortOrder, setSortOrder] = useState('default');
+    const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     
     const filterMenuRef = useRef<HTMLDivElement>(null);
     const sortMenuRef = useRef<HTMLDivElement>(null);
+
+    // Load tasks from localStorage on initial render
+    useEffect(() => {
+        try {
+            const storedTasks = localStorage.getItem('bde_tasks');
+            if (storedTasks) {
+                setTasks(JSON.parse(storedTasks));
+            } else {
+                localStorage.setItem('bde_tasks', JSON.stringify(initialTasks));
+                setTasks(initialTasks);
+            }
+        } catch (error) {
+            console.error("Failed to load tasks from localStorage", error);
+            setTasks(initialTasks);
+        }
+    }, []);
+
+    const updateTasks = (newTasks: Task[]) => {
+        setTasks(newTasks);
+        try {
+            localStorage.setItem('bde_tasks', JSON.stringify(newTasks));
+        } catch (error) {
+            console.error("Failed to save tasks to localStorage", error);
+        }
+    };
     
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -241,15 +265,20 @@ const BdeDashboardPage: React.FC = () => {
 
 
     const handleAddTask = (status: Status) => {
+        setIsTaskModalOpen(true);
+    };
+
+    const handleSaveTask = (newTaskData: { title: string; priority: string; assignees: string[] }) => {
         const newTask: Task = {
             id: `task-${Date.now()}`,
-            title: 'New BDE Task - Qualify Inbound Leads',
-            priority: 'Important',
-            status: status,
+            title: newTaskData.title,
+            priority: newTaskData.priority as Priority,
+            status: 'todo',
             comments: 0,
-            assignees: ['1'],
+            assignees: newTaskData.assignees,
+            assigner: 'bde'
         };
-        setTasks(prevTasks => [newTask, ...prevTasks]);
+        updateTasks([newTask, ...tasks]);
     };
 
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, task: Task) => {
@@ -264,11 +293,10 @@ const BdeDashboardPage: React.FC = () => {
     const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetStatus: Status) => {
         e.preventDefault();
         const taskId = e.dataTransfer.getData('taskId');
-        setTasks(prevTasks => 
-            prevTasks.map(task => 
-                task.id === taskId ? { ...task, status: targetStatus } : task
-            )
+        const newTasks = tasks.map(task => 
+            task.id === taskId ? { ...task, status: targetStatus } : task
         );
+        updateTasks(newTasks);
         setDraggedTask(null);
     };
 
@@ -317,6 +345,12 @@ const BdeDashboardPage: React.FC = () => {
 
     return (
         <div className="bg-white p-6 rounded-2xl min-h-full">
+             <TaskModal 
+                isOpen={isTaskModalOpen} 
+                onClose={() => setIsTaskModalOpen(false)} 
+                onSave={handleSaveTask}
+                defaultAssigneeId="1" // Assuming Amélie is user '1'
+            />
             <header className="flex flex-wrap justify-between items-start gap-4 mb-6">
                 <div>
                      <div className="flex items-center text-sm text-slate-500 font-medium gap-1 mb-2">

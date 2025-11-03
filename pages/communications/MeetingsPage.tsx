@@ -1,136 +1,117 @@
-import React, { useState, useMemo } from 'react';
-import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
-import Input from '../../components/ui/Input';
-import SparklesIcon from '../../components/icons/SparklesIcon';
-import ChevronLeftIcon from '../../components/icons/ChevronLeftIcon';
-import ChevronRightIcon from '../../components/icons/ChevronRightIcon';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { GoogleGenAI } from '@google/genai';
+import CalendarHeader from '../../components/calendar/CalendarHeader';
+import MonthView from '../../components/calendar/MonthView';
+import WeekView from '../../components/calendar/WeekView';
+import DayView from '../../components/calendar/DayView';
+import MeetingModal from '../../components/modals/MeetingModal';
+import MeetingDetailModal from '../../components/modals/MeetingDetailModal';
 
-// Mock Data
-const meetingsData = [
-    { id: 1, title: 'Q3 Strategy with Innovatech', date: '2024-07-15T10:00:00' },
-    { id: 2, title: 'Demo for Solutions Inc.', date: '2024-07-15T14:00:00' },
-    { id: 3, title: 'Team Sync', date: '2024-07-18T09:00:00' },
-    { id: 4, title: 'Follow-up with DataCorp', date: '2024-07-25T11:00:00' },
+export interface Meeting {
+    id: string;
+    title: string;
+    start: Date;
+    end: Date;
+    attendees: string[];
+    agenda: string;
+}
+
+const initialMeetings: Meeting[] = [
+    { id: '1', title: 'Q3 Strategy with Innovatech', start: new Date('2024-07-15T10:00:00'), end: new Date('2024-07-15T11:30:00'), attendees: ['John Doe'], agenda: 'Discuss Q3 goals.' },
+    { id: '2', title: 'Demo for Solutions Inc.', start: new Date('2024-07-15T14:00:00'), end: new Date('2024-07-15T15:00:00'), attendees: ['Jane Smith'], agenda: 'Product demo.' },
+    { id: '3', title: 'Team Sync', start: new Date('2024-07-18T09:00:00'), end: new Date('2024-07-18T09:30:00'), attendees: ['Sales Team'], agenda: 'Weekly check-in.' },
+    { id: '4', title: 'Follow-up with DataCorp', start: new Date('2024-07-25T11:00:00'), end: new Date('2024-07-25T11:30:00'), attendees: ['Sam Wilson'], agenda: 'Follow up on proposal.' },
 ];
 
 const MeetingsPage: React.FC = () => {
-    const [currentDate, setCurrentDate] = useState(new Date('2024-07-01')); // Fixed for demo
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [meetingTitle, setMeetingTitle] = useState('');
-    const [agenda, setAgenda] = useState('');
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [meetings, setMeetings] = useState<Meeting[]>(initialMeetings);
+    const [currentDate, setCurrentDate] = useState(new Date('2024-07-15')); // Fixed date for consistent demo
+    const [activeView, setActiveView] = useState<'month' | 'week' | 'day'>('week');
+    const [now, setNow] = useState(new Date());
+    
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+    const [modalDate, setModalDate] = useState<Date | null>(null);
 
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-    const daysInMonth = Array.from({ length: lastDayOfMonth.getDate() }, (_, i) => i + 1);
-    const startingDay = firstDayOfMonth.getDay();
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setNow(new Date());
+        }, 60000); // Update every minute
+        return () => clearInterval(timer);
+    }, []);
 
-    const handleGenerateAgenda = () => {
-        if (!meetingTitle) return;
-        setIsGenerating(true);
-        setAgenda('');
-        setTimeout(() => {
-            setAgenda(
-`**Meeting Agenda: ${meetingTitle}**
-
-**1. Welcome & Introductions (5 mins)**
-   - Brief check-in with all attendees.
-
-**2. Review of Previous Action Items (10 mins)**
-   - Status update on key takeaways from our last discussion.
-
-**3. Main Topic: [Insert Core Subject] (25 mins)**
-   - Presentation of key points.
-   - Open discussion and Q&A.
-   - Alignment on goals and objectives.
-
-**4. Next Steps & Action Items (10 mins)**
-   - Define clear, actionable next steps.
-   - Assign owners and deadlines.
-
-**5. Wrap-up (5 mins)**
-   - Summarize key decisions.
-   - Confirm date for next meeting.`
-            );
-            setIsGenerating(false);
-        }, 1500);
+    const handleOpenCreateModal = (date?: Date) => {
+        setSelectedMeeting(null);
+        setModalDate(date || new Date());
+        setIsCreateModalOpen(true);
     };
 
-    const changeMonth = (delta: number) => {
-        setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
+    const handleOpenDetailModal = (meeting: Meeting) => {
+        setSelectedMeeting(meeting);
+        setIsDetailModalOpen(true);
     };
+
+    const handleSaveMeeting = (meetingData: Omit<Meeting, 'id'>) => {
+        if (selectedMeeting) {
+            // Update
+            setMeetings(meetings.map(m => m.id === selectedMeeting.id ? { ...meetingData, id: m.id } : m));
+        } else {
+            // Create
+            setMeetings([...meetings, { ...meetingData, id: `meeting-${Date.now()}` }]);
+        }
+        setIsCreateModalOpen(false);
+        setSelectedMeeting(null);
+    };
+
+    const handleDeleteMeeting = () => {
+        if (selectedMeeting) {
+            setMeetings(meetings.filter(m => m.id !== selectedMeeting.id));
+            setIsDetailModalOpen(false);
+            setSelectedMeeting(null);
+        }
+    };
+
+    const handleUpdateMeetingTime = useCallback((id: string, newStart: Date, newEnd: Date) => {
+        setMeetings(prevMeetings => prevMeetings.map(m => m.id === id ? { ...m, start: newStart, end: newEnd } : m));
+    }, []);
 
     return (
-        <div className="space-y-6">
-            <header className="flex flex-wrap justify-between items-center gap-4 animate-fade-in">
-                <div>
-                    <h1 className="text-4xl font-bold text-slate-800">Meeting Scheduler</h1>
-                    <p className="text-slate-500 mt-1">Organize your schedule and prepare for meetings with AI assistance.</p>
-                </div>
-                <Button onClick={() => setIsModalOpen(true)}>Schedule Meeting</Button>
+        <div className="h-[calc(100vh-4rem)] flex flex-col font-sans">
+            <header className="px-1 mb-6 animate-fade-in">
+                <h1 className="text-4xl font-bold text-slate-800">Meeting Scheduler</h1>
+                <p className="text-slate-500 mt-1">Organize your schedule and prepare for meetings with AI assistance.</p>
             </header>
+            
+            <CalendarHeader 
+                currentDate={currentDate}
+                setCurrentDate={setCurrentDate}
+                activeView={activeView}
+                setActiveView={setActiveView}
+                onAddMeeting={() => handleOpenCreateModal()}
+            />
 
-            <main className="bg-white p-6 rounded-2xl shadow-sm animate-fade-in" style={{ animationDelay: '100ms' }}>
-                <div className="flex justify-between items-center mb-4">
-                    <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-slate-100"><ChevronLeftIcon className="w-5 h-5" /></button>
-                    <h2 className="text-xl font-bold text-slate-800">
-                        {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
-                    </h2>
-                    <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-slate-100"><ChevronRightIcon className="w-5 h-5" /></button>
-                </div>
-                
-                <div className="grid grid-cols-7 gap-1 text-center">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="font-semibold text-slate-500 text-sm py-2">{day}</div>
-                    ))}
-                    {Array.from({ length: startingDay }).map((_, i) => <div key={`empty-${i}`} className="border-t border-slate-100"></div>)}
-                    {daysInMonth.map(day => {
-                        const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                        const meetingsOnDay = meetingsData.filter(m => m.date.startsWith(dateStr));
-                        return (
-                            <div key={day} className="border-t border-slate-100 h-28 p-2 text-left">
-                                <span className="font-semibold text-slate-700">{day}</span>
-                                <div className="mt-1 space-y-1">
-                                    {meetingsOnDay.map(meeting => (
-                                        <div key={meeting.id} className="bg-indigo-100 text-indigo-800 text-xs font-semibold p-1 rounded truncate">
-                                            {meeting.title}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+            <main className="flex-1 overflow-y-auto bg-white rounded-b-2xl shadow-sm animate-fade-in" style={{ animationDelay: '100ms' }}>
+                {activeView === 'month' && <MonthView meetings={meetings} currentDate={currentDate} onDayClick={(day) => { setCurrentDate(day); setActiveView('day'); }} />}
+                {activeView === 'week' && <WeekView meetings={meetings} currentDate={currentDate} now={now} onEventClick={handleOpenDetailModal} onNewEvent={handleOpenCreateModal} onEventDrop={handleUpdateMeetingTime} />}
+                {activeView === 'day' && <DayView meetings={meetings} currentDate={currentDate} now={now} onEventClick={handleOpenDetailModal} onNewEvent={handleOpenCreateModal} onEventDrop={handleUpdateMeetingTime} />}
             </main>
+            
+            <MeetingModal
+                isOpen={isCreateModalOpen}
+                onClose={() => { setIsCreateModalOpen(false); setSelectedMeeting(null); }}
+                onSave={handleSaveMeeting}
+                meeting={selectedMeeting}
+                initialDate={modalDate}
+            />
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                <div className="p-2">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Schedule a New Meeting</h2>
-                    <p className="text-slate-500 mb-6">Fill in the details and let AI help you prepare.</p>
-                    <form className="space-y-5">
-                        <Input label="Meeting Title / Topic" id="meeting-title" type="text" placeholder="e.g., Q3 Strategy Kick-off" value={meetingTitle} onChange={e => setMeetingTitle(e.target.value)} />
-                        <Input label="Attendees" id="attendees" type="text" placeholder="e.g., John Doe, Jane Smith" />
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input label="Date" id="date" type="date" />
-                            <Input label="Time" id="time" type="time" />
-                        </div>
-                        <div>
-                             <label htmlFor="agenda" className="block text-sm font-medium text-gray-500 mb-2">Agenda</label>
-                             <div className="relative">
-                                <textarea id="agenda" rows={8} value={agenda} onChange={e => setAgenda(e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Describe the meeting goals or generate an agenda with AI..."/>
-                                <Button type="button" onClick={handleGenerateAgenda} isLoading={isGenerating} className="!absolute bottom-3 right-3 !py-2 !px-3" leftIcon={<SparklesIcon className="w-4 h-4"/>}>
-                                    Generate with AI
-                                </Button>
-                             </div>
-                        </div>
-                        <div className="pt-4 flex justify-end gap-3">
-                            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                            <Button type="submit" onClick={(e) => { e.preventDefault(); setIsModalOpen(false); }}>Schedule</Button>
-                        </div>
-                    </form>
-                </div>
-            </Modal>
+            <MeetingDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                meeting={selectedMeeting}
+                onDelete={handleDeleteMeeting}
+                onEdit={() => { setIsDetailModalOpen(false); setIsCreateModalOpen(true); }}
+            />
         </div>
     );
 };

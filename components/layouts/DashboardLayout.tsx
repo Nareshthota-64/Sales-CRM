@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
-import BrainCircuitIcon from '../icons/BrainCircuitIcon';
 import SearchIcon from '../icons/SearchIcon';
 import HomeIcon from '../icons/HomeIcon';
 import ZapIcon from '../icons/ZapIcon';
@@ -20,7 +19,6 @@ import BotIcon from '../icons/BotIcon';
 import PipelineIcon from '../icons/PipelineIcon';
 import CrystalBallIcon from '../icons/CrystalBallIcon';
 import ActivityIcon from '../icons/ActivityIcon';
-import SwordsIcon from '../icons/SwordsIcon';
 import MapIcon from '../icons/MapIcon';
 import UploadCloudIcon from '../icons/UploadCloudIcon';
 import FilePieChartIcon from '../icons/FilePieChartIcon';
@@ -32,7 +30,6 @@ import StarIcon from '../icons/StarIcon';
 import CrosshairIcon from '../icons/CrosshairIcon';
 import BellIcon from '../icons/BellIcon';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
-import MicIcon from '../icons/MicIcon';
 
 
 const DashboardLayout: React.FC = () => {
@@ -81,10 +78,11 @@ const DashboardLayout: React.FC = () => {
         { to: '/master/territories', icon: <MapIcon className="w-5 h-5" />, label: 'Territories' },
     ];
 
-    const bdeCommunicationNavItems = [
+    const communicationNavItems = [
         { to: '/communications/email', icon: <MailIcon className="w-5 h-5" />, label: 'Email Center', count: 3 },
         { to: '/communications/meetings', icon: <CalendarDaysIcon className="w-5 h-5" />, label: 'Meetings' },
         { to: '/communications/calls', icon: <PhoneCallIcon className="w-5 h-5" />, label: 'Call Logs' },
+        { to: '/chat', icon: <MessageSquareIcon className="w-5 h-5" />, label: 'Internal Chat' },
     ];
 
     const strategyNavItems = [
@@ -92,7 +90,6 @@ const DashboardLayout: React.FC = () => {
         { to: '/ai/insights', icon: <BotIcon className="w-5 h-5" />, label: 'AI Insights' },
         { to: '/analytics/predictive', icon: <CrystalBallIcon className="w-5 h-5" />, label: 'Predictive Analytics' },
         { to: '/analytics/performance', icon: <ActivityIcon className="w-5 h-5" />, label: 'Performance Intel' },
-        { to: '/intelligence/competitors', icon: <SwordsIcon className="w-5 h-5" />, label: 'Competitor Intel' },
     ];
     
     const toolsNavItems = [
@@ -100,7 +97,6 @@ const DashboardLayout: React.FC = () => {
         { to: '/tools/reports', icon: <FilePieChartIcon className="w-5 h-5" />, label: 'Report Builder' },
         { to: '/tools/templates', icon: <LibraryIcon className="w-5 h-5" />, label: 'Templates' },
         { to: '/training', icon: <BookOpenIcon className="w-5 h-5" />, label: 'Training & Coaching' },
-        { to: '/training/simulator', icon: <MicIcon className="w-5 h-5" />, label: 'AI Call Simulator' },
         { to: '/tools/integrations', icon: <PuzzleIcon className="w-5 h-5" />, label: 'Integrations' },
     ];
 
@@ -111,26 +107,25 @@ const DashboardLayout: React.FC = () => {
     ];
     
     const commonNavItems = [
-        { to: '/chat', icon: <MessageSquareIcon className="w-5 h-5" />, label: 'Internal Chat' },
         { to: '/settings', icon: <SettingsIcon className="w-5 h-5" />, label: 'Settings' },
         { to: '/help', icon: <HelpCircleIcon className="w-5 h-5" />, label: 'Help' },
     ];
+
+    if (!userRole) {
+        return null; // or a loading spinner
+    }
 
     const navItems = userRole === 'master' ? masterNavItems : bdeNavItems;
     const profile = userRole === 'master' 
         ? { name: 'Master Admin', role: 'System Controller', avatar: 'https://i.pravatar.cc/150?img=12' }
         : { name: 'Amélie Laurent', role: 'BDE', avatar: 'https://i.pravatar.cc/150?img=1' };
 
-    if (!userRole) {
-        return null; // or a loading spinner
-    }
+    const finalToolsNavItems = userRole === 'master' 
+        ? toolsNavItems.filter(item => item.label !== 'Training & Coaching') 
+        : toolsNavItems.filter(item => item.label !== 'Integrations');
 
-    const displayedToolsItems = userRole === 'master'
-        ? toolsNavItems.filter(item => item.to !== '/training/simulator')
-        : toolsNavItems;
-
-    const displayedGamificationItems = userRole === 'master'
-        ? gamificationNavItems.filter(item => item.to === '/gamification/leaderboard')
+    const finalGamificationNavItems = userRole === 'master'
+        ? gamificationNavItems.filter(item => item.label !== 'Achievements' && item.label !== 'Goals')
         : gamificationNavItems;
 
     return (
@@ -139,7 +134,7 @@ const DashboardLayout: React.FC = () => {
             <aside className="w-72 bg-white border-r border-slate-200/80 flex flex-col">
                 <div className="p-6 border-b border-slate-200/80 h-20 flex items-center">
                     <Link to="/" className="flex items-center gap-3">
-                        <BrainCircuitIcon className="w-8 h-8 text-indigo-500" />
+                        <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIALwAyAMBIgACEQEDEQH/xAAbAAEAAgMBAQAAAAAAAAAAAAAABQYBAwQCB//EAEYQAAEDAwEEBgcFBAYLAAAAAAEAAgMEBREhBhITMSJBUWFxgRQjMpGhscEHFdHh8BYzQoIkNVJicvE2Q1NVVnOSk5TC0v/EABkBAQADAQEAAAAAAAAAAAAAAAACAwQBBf/EADARAAIBAwMCBAQFBQAAAAAAAAABAgMRMQQSIRNBFCIyUSNhccFCgZGx0TNSYqHh/9oADAMBAAIRAxEAPwD7iiIgCLCIDKLxvdqhb1tJT2z1TPX1PLhs6vFSjFydkV1KsKcd0nwS8srYWF0kjWNHMuOAq/W7WwMfwqCJ9VIeRAw381ww2i6X54nu0zoIObYWjBA8OrzyrLQWujt7C2lgY1x5u5k+fNWNQhnlmZTr1uYeVe/crwp9obqd6omFJCf4B0T+PvIXXS7I0bOlUSyTO7PZ+WvxVkwEwFB1H2Jx0kMy5fzOCKy22LG7RRHHW4bx+K62QQx+xExvg0BbUUbsvUIxwjzujsC8Pp4ZPbiY7xblbUXCVkR8tmt8ow6kjH+EbvyUfLsxTh2/STyQv7M5H4/FWBYwhW6NN5RWQy927WNwqov+r812Ue0NPK7hVTXU8n94aKawFxVttpaxp40QJPJ7dHBRs1gj05R9LOpr2vALHAg8iNcr2q0+kuNmO/SPM8HWzHL9dylLbdoa0bv7uYc43c1xTV7PgnGpd2fDJJF5BXpTLAiIgCIiAIiIDC8l2M+CZVQv92qLjWfc9oOXE7ssrTy/Idasp03N2RRXrxoxu89j3edoJ6yoNtsQMkrjh8o6vD8V32LZyCg9fUYnqjqXu1DT3fiuqxWantFNw4xvyu9uXGrlK4Up1ElthgppaeUpdWty/bshhMaLKKk2hERAEREAREQBERAEwiIDzgfoqIuVmZMTUUp4U/PLeRUysYCjKKkrMjKKkuSEt12fxvRLgOHP1HGjlNZPmo+622Ouj06EzfYf9CuW03CRknoNcC2VujXHr7lWpOD2yIJuLtInEWMrKuLQiIgCLBXJc6+O30MtVM7DY258T1BdSbdkRlJRTbITa28vpI20FHl1XUadHm0fieQXVs1ZWWmjG/rUv1kf8gonZGhkuFXLfK9uXvceC3q8fLl71ccBaKrVNdKP5mHTQdaXiJ/kvZDAWVlFmPQCIiAIiIAiIgCIiAIiIAiIgCIiA0VMDaiF8TuThhRVildDJLQS+0wktypvAUFeAaOvgrmDTk/HX+gs9bytVF2Iy45J5F5a7eAIOQRnKK+6JFa29rPR7G6IHWd4Z5cz8vipPZ2k9Bs9LAW4cGAu/xAR1Kru2f8ATL9aaDtdvOHcXAfQq0feVDnd9MgDuWOIOa1zTVCMV35POpNS1U5vtZL7nci8OeGMLnuwAMknqC5o7lRyScOOrgc88gJAcrNZs9BySydiLkfX08dYykfOwVD25bHnUhdSNNBSTwZRYUbc75RWw7tZK5rsZDWsJPyRRcnZHJzjBXk7Ik0WAi4SMouOuuNLb4uJWTsib2uOp8lGM2vssjwxtZjPImMge/CnGlOSvFNlM9RSg7SkkyfRaoZ4542vhka9jhkOacgrYoFqaeDKLC1zTxwNLppGsb2uOEOt2NqLlgrqaofuQ1MT3YzuteCV0pZrJxNPlGUWFrmlbDE+SR2GsGScZ0Q6bUUbb7xS3GaeGjkMjoAN/o4xnPb4KRXZRcXZkYTjNXi7mVwXiDjUEgAyW9IeWq7srD2hzS0jIPNVzjui0daucNml41vjyclvRPki5NnnGN1VTk/u3Zx8PosKuh56abEeUQs/r/tFhadRFHy/kJ+ZWyelp/27hj4Me56Pvbu6MZ6Wq8Uuv2i1WeqP/wBGr3cIpZduYmQVDoHmm0e1rSRz6iCF7L4aX+B4Ss05Wv8AELe9jXtLXt3gRgg9aqWztPD+1N2HCZiIt4eB7Pgpn7ur/wDfNR/2ov8A5UPsux0e0l4bJKZXjdy5wALjr2aLPSSUJ2fb7m6vJyq0rxtz9jvfUWWfaCnOQ+4gOYwjORjOc9XapKuuVPQBnpEnSecMY0Zc49wCgLj/AKd2odXCd8nrXVvdFt5TOq8iJ0OIXHlnBz4HOfeE6Slbntcj4iUN1kvVb/rJWfaGGMiFsMwqn44cMrC3fOcc+ztUBtbNWz7Ph1wpG08gqg1oY7eDmgFdm3o4tPQxU7d6rdUAxBvtcjn6LP2gg/ccO9qRO3PuKsoRipQaWWVaqU5Rqxb4SJKo2koadpJM8kY9qaOFxYP5sYXbJc6cWx9wjeJIGxl4LevC3ugidTmIxt4ZZjdxphUezMkqNhbjAzJLHv3R3AByqhThNXxyjRUrVabs+bptfVHRYLS7aCV94vGZGvcRDDnogA/RWOXZ60yxmN1vp8HsYAfeNVy7G1EdRs/TNjI9WCxwB5EKbc4NaXOIDRzKV6s+o0na2ENLp6ToqTV21yylUjZtl9oIaQSOdbqvRgcfYPL548irv8lStrKmG4V1ngoZGzSPmzlhzgZH68lZ7nTVdTTBlFWeiyBwJk4YfkdmCu11uUZS4byR0stjqQhzFY/g7srXPFFPFuzRte3scMhQf3Re/wDiF3/iM/FTMDZGU7WTycR7WgOk3d3eONThUSjGOJX/AFNUJymnui19bfYrP2dxR/dksu4OJxi3f68YGityqf2d/wBSy/8APPyCtJeGkB5AzoO8qzU/1pFWgstNEj5rzTslkiibNUSR6PEMZdunx5LZbrlS3KN7qZ5duEtexww5p7CFGUk1stE1TT0bp6meSQySxxtMjmk9uOXmuLZmRztpLuRHJG14a7ceMEHvXelFxk12IeIkpxi2nd2NNluFPQ369mdzt50oa1jGlz3YzyAyT1Keo7/RVVT6LvSQ1OMiKdhY4+GVE7LtB2jvpIBIlAB83LH2gwNbQU1WzozxTANeNCNCrZwjOsoPLS/Yz06lSlp3UjhN8fmWC4XKnoOG2d54kjt2NjW5c49wWmK9Uz6qKmeJo55ThrJIyM6E/RQl5juDai3Xykh9IMcIbJCOYz2e9b6G9W281lMJd6nrIJC5jJG4ycEYB8/gq+gtm7Pv8i/xT6m1u2LX7r6nbQDh3yqYNMgn4g/VEh02kmH936BF5unw182bokLCeH9o84P8bNO/1Y/BbZvTf2qFw+7al0McfDaWgZJ7efLVabv/AETbugnOgkaG57SctV1AC9erU2qLXeNjy6FHqOcW7Wk2eJXFjHOwThpOBzKqtibWwX+uqZ7fUsjq3DcOAd3Geeuit2Am6OxZYVNsWrZN9Sj1JRlfBUbi2rdtZS1zKCofT07CwuaBkkh2o15arVtHViO8siuNHJVUfD3oY4+e91kgan5K5YHYqx6+27R1dXV08s1NUtaI5omF/CAGoICvpVNz5WEY9RQcI8P1O7+Ry0V/sVLOHOoqimk5b8zCS0d2pIW7bFs11t1PDboX1Ie4ScSPBbjBA6+8Lvq7pTVNO+GmpJqt7xuiPgOa3zLgAF12GgfbrTT0cjt58bekRyyddFxzUGqluU+52NKVROi2nFrKVjb6W70H0j0ebe3c8HA3+eOWVA7FU9RR0U1LW0ksZe90m8/G7g4GM5VrwmAFSqlouNsmuVDdOM28fcpdRaLpYq2SrsAE1PJq+mPV+u7VZN7udxAo6iw1LYpMsldlzcDtBIHzVz3R2dyboVniL23RTfuUeC2v4c2l7diiWHZ6stW0wzCJaZrSWzO6gfqr1hZ3R+imFCtWlVlulku02mhp4uMPe4XNWzPgp3PbFJM4cmRjUrqWMDsVXcvaurFP2UNXZ7dJT1Nuq3PdKXdBgIxgd666qpuFwuNHHFQVEEDHOe+WXAwd1wGgJ01Csu6OxN0diulW3Tc7csyx0rVNU93CKVs3LWWaCajqLVVyzulLuJGzLXfzZwuizQ11LtBXVFVQyNbU7oDo9Wt06z+Stu6OxN0KUtQ25O2SMdHtUVu9OCo26OttV5uNXNSSvpqmQ9KMbzhg6Hd54OSttzgqNpJ6eDgSwW+N+/JJK3dc89gB1HuVpDQBjGiYCi6z3brcnVpFs6d/KQVZPWUd3Do6aWajMADhH/CcnUDwUdcqc3m50MlHQzQ8GUPlqZIjH0Rru4OCT5K2loPMJgLkau3lLknPTb1tb4Iam6W0U7h1N+gCwlo9bdKybmMlo8z+SLFpvS37tmiGCI+0CN0X3fXxjpQy4+o+XxVtp5WzwRysOWvaHBRu1NEa6y1MTdXhu+zxGq49iK8Vdkja49OA8N3hzHwK9KXn06f9v3MEPh6yS7SV/wBCyIiLKegYXktB5he1jCAxujGMIAByXpEAREQBERAEREAREQBERAEREAREQGFqqZRDTvlJ9hpK2qJ2gm3KMRNOXSO5d3NV1ZbYNnG7Ixs7GW0z5Hc3u0KLvoYPR6WOPrDRnx60XKMdkEhFWRvIBGqpFpJsO1tRQSaU9VrH2a6j6hXhVjba2OqqJtZTt9fSHeBHMt5lbNPJXcJYZi1sJbVUhmPP8lnCyojZ26i622OckcUdGUDqcpZVSi4tpmunUVSKlHDMoiKJMIiIAiIgCIiAIiIAiIgCIiAIiIAiwsoDyTjwUF/WN6IGsUH0/P5LuvFb6LSncPrXaN8eebLSGmpA5w9ZJ0nd3cs9TzzUO3cg+XYkkWUWgmYWHNa4EOGQdML0iAocrX7J37fAJttUTnHV2+Y+WVd2SCRjXscHNcMgjkexct1t0V0opKWcaHUOHNp6iFWbBcprHWGz3U4Zn1Up5DPLyPwPw0y+NHd+Jf7R50X4Sptfolj5P2Lqi8Ak4XpZj0TKIiAIiIAiIgCIiAIiIAiIgCLCIDK1zStijL3uDWtGSSvRdujJOg5kqvVtS+7VXodKfUt9uT9fBV1J7URlKyM0rXXa4GpkB9Gi9kHrVgwFqpqdlNCyJmgaMaLelOG1fNiKsERFYSCIiA84UVfbPBeKYRv6ErP3cgGrVLrGAuxk4u6IVKcakXGS4KbZr1UWmoFrvQLcaRzHXTx6x3/AKFva8PbvNOWkZGNVxXa1U11p+HUs1GrXjm0qsRVNz2WkENSx1Tbyei/rA7uw9yvajV5WTFGc9L5anMff2+peEXFb7lTXGES0kweOtvW3xC7Mqhpp2ZujJSV0zKLCLhIyiIgCIiAIsIgMosJlAF4c8NaXOIAGpyuetuEFEzenkAOPZGpKhc1t8kGBwKQHXv/ABUJTS4WSuVRLhZPdbXTXSf0SgHqs9OT9dSl7fRRUNOImAE/xO6yvdFSQ0cIjhaBjme0rowFyEOd0snYx5u8jCyiKwmEREAREQBERAYwvEkUcrHMlY17HDBa4ZBWxEFip12y74ZhVWWd0Eo/1ZOnkvFPtLW294hvdI8HlxGNxn6FW7AWuenhqIzHPEyRh5teMhW9S6tLkyPS7Xek9v7HLRXWirmg01Qx5I9nk73LtzplVHaGw0NLTuqKZr43A53Q7o+4qDhvdyowOFVyEdj+l806afpK3rJU3tqr9D6Yiqlo2irauXhzNhx2hpB+asweVBxaNMK8Zq6NqLxvFeS8hcsWb0bF5LgqzcNoKyGXhxthA7d05+ahp7vX1LSZal+P7LeiPguFEtTFcIudXdKSk0mnYD/ZByT5KKfeK2vcY7XTuA/2jsf5BerTZaIxsmkY6Rzue+7T4Kfjijibuxsaxo6mjAUeWSW+p3siEorCGv49fIaiY64Jy3z7VNhjWtDQ0ADQDsXrAWV1RSwWxgorgxgLKIukgiIgCIiA/9k=" alt="HighQ-Labs Logo" className="w-8 h-8" />
                         <span className="text-xl font-bold text-slate-800">BDE AI System</span>
                     </Link>
                 </div>
@@ -160,24 +155,22 @@ const DashboardLayout: React.FC = () => {
                             ))}
                         </ul>
                     </div>
-                    {userRole === 'bde' && (
-                        <div>
-                            <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Communications</p>
-                            <ul className="space-y-1">
-                                {bdeCommunicationNavItems.map(item => (
-                                    <li key={item.to}>
-                                        <NavLink to={item.to} className={({ isActive }) => `flex items-center justify-between py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}>
-                                            <div className="flex items-center gap-3">
-                                                {item.icon}
-                                                <span>{item.label}</span>
-                                            </div>
-                                            {item.count && <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${'bg-yellow-200 text-yellow-800'}`}>{item.count}</span>}
-                                        </NavLink>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                    <div>
+                        <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Communications</p>
+                        <ul className="space-y-1">
+                            {communicationNavItems.map(item => (
+                                <li key={item.to}>
+                                    <NavLink to={item.to} className={({ isActive }) => `flex items-center justify-between py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+                                        <div className="flex items-center gap-3">
+                                            {item.icon}
+                                            <span>{item.label}</span>
+                                        </div>
+                                        {item.count && <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${'bg-yellow-200 text-yellow-800'}`}>{item.count}</span>}
+                                    </NavLink>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                     <div>
                         <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Strategy</p>
                         <ul className="space-y-1">
@@ -193,7 +186,7 @@ const DashboardLayout: React.FC = () => {
                     <div>
                         <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tools</p>
                         <ul className="space-y-1">
-                            {displayedToolsItems.map(item => (
+                            {finalToolsNavItems.map(item => (
                                 <li key={item.to}>
                                     <NavLink to={item.to} className={({ isActive }) => `flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}>
                                         {item.icon}<span>{item.label}</span>
@@ -202,18 +195,20 @@ const DashboardLayout: React.FC = () => {
                             ))}
                         </ul>
                     </div>
-                    <div>
-                        <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Gamification</p>
-                        <ul className="space-y-1">
-                            {displayedGamificationItems.map(item => (
-                                <li key={item.to}>
-                                    <NavLink to={item.to} className={({ isActive }) => `flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}>
-                                        {item.icon}<span>{item.label}</span>
-                                    </NavLink>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    {finalGamificationNavItems.length > 0 &&
+                        <div>
+                            <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Gamification</p>
+                            <ul className="space-y-1">
+                                {finalGamificationNavItems.map(item => (
+                                    <li key={item.to}>
+                                        <NavLink to={item.to} className={({ isActive }) => `flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+                                            {item.icon}<span>{item.label}</span>
+                                        </NavLink>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    }
                     <div>
                         <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">General</p>
                         <ul className="space-y-1">

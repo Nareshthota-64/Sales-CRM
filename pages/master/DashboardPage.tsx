@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import DollarSignIcon from '../../components/icons/DollarSignIcon';
 import ZapIcon from '../../components/icons/ZapIcon';
 import TrendingUpIcon from '../../components/icons/TrendingUpIcon';
 import FileCheckIcon from '../../components/icons/FileCheckIcon';
 import ClockIcon from '../../components/icons/ClockIcon';
 import AreaChart from '../../components/charts/AreaChart';
+import PlusIcon from '../../components/icons/PlusIcon';
+import Button from '../../components/ui/Button';
+import TaskModal from '../../components/modals/TaskModal';
+import { assigneeAvatars } from '../../components/data/users';
 
 const kpiData = [
   { title: "Total ARR", value: "$4.8M", change: "+12.5% MoM", icon: <DollarSignIcon className="w-6 h-6 text-green-600" />, color: "bg-green-100", delay: 100 },
@@ -35,6 +39,19 @@ const activityFeed = [
     { text: 'System-wide conversion rate increased by 0.2%', time: '2 days ago' },
 ];
 
+type Status = 'todo' | 'inprogress' | 'completed';
+type Priority = 'Important' | 'Meh' | 'OK' | 'High Priority' | 'Not that important';
+
+interface Task {
+  id: string;
+  title: string;
+  priority: Priority;
+  status: Status;
+  comments: number;
+  assignees: string[];
+  assigner?: string;
+}
+
 const KpiCard: React.FC<{ title: string; value: string; change: string; icon: React.ReactNode; color: string, delay: number }> = ({ title, value, change, icon, color, delay }) => (
     <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 animate-fade-in" style={{ animationDelay: `${delay}ms` }}>
         <div className="flex justify-between items-start">
@@ -49,6 +66,105 @@ const KpiCard: React.FC<{ title: string; value: string; change: string; icon: Re
         <p className={`text-sm font-semibold mt-4 ${change.startsWith('+') ? 'text-green-600' : 'text-slate-500'}`}>{change}</p>
     </div>
 );
+
+const TaskTracker: React.FC = () => {
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
+    useEffect(() => {
+        const loadTasks = () => {
+            try {
+                const storedTasks = localStorage.getItem('bde_tasks');
+                if (storedTasks) {
+                    setTasks(JSON.parse(storedTasks));
+                }
+            } catch (error) {
+                console.error("Failed to load tasks from localStorage", error);
+            }
+        };
+
+        loadTasks();
+        
+        // Listen for storage changes to update in near real-time
+        window.addEventListener('storage', loadTasks);
+        return () => window.removeEventListener('storage', loadTasks);
+    }, []);
+
+    const updateTasks = (newTasks: Task[]) => {
+        setTasks(newTasks);
+        try {
+            localStorage.setItem('bde_tasks', JSON.stringify(newTasks));
+            // Dispatch a storage event to notify other tabs/components
+            window.dispatchEvent(new Event('storage'));
+        } catch (error) {
+            console.error("Failed to save tasks to localStorage", error);
+        }
+    };
+
+    const handleSaveTask = (newTaskData: { title: string; priority: string; assignees: string[] }) => {
+        const newTask: Task = {
+            id: `task-${Date.now()}`,
+            title: newTaskData.title,
+            priority: newTaskData.priority as Priority,
+            status: 'todo',
+            comments: 0,
+            assignees: newTaskData.assignees,
+            assigner: 'master'
+        };
+        updateTasks([newTask, ...tasks]);
+    };
+
+    const statusClasses: Record<Status, string> = {
+        todo: 'bg-indigo-100 text-indigo-700',
+        inprogress: 'bg-amber-100 text-amber-700',
+        completed: 'bg-green-100 text-green-700',
+    };
+
+    return (
+        <div className="bg-white p-6 rounded-2xl shadow-sm animate-fade-in" style={{ animationDelay: '800ms' }}>
+            <TaskModal 
+                isOpen={isTaskModalOpen}
+                onClose={() => setIsTaskModalOpen(false)}
+                onSave={handleSaveTask}
+            />
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-slate-800">Team Task Tracker</h3>
+                <Button onClick={() => setIsTaskModalOpen(true)} leftIcon={<PlusIcon className="w-4 h-4" />}>Assign Task</Button>
+            </div>
+            <div className="overflow-x-auto max-h-96">
+                <table className="w-full text-sm text-left">
+                    <thead className="text-xs text-slate-500 uppercase border-b border-slate-200 sticky top-0 bg-white">
+                        <tr>
+                            <th className="px-4 py-3">Task</th>
+                            <th className="px-4 py-3">Assigned To</th>
+                            <th className="px-4 py-3">Status</th>
+                            <th className="px-4 py-3">Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {tasks.map(task => (
+                            <tr key={task.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                                <td className="px-4 py-3 font-semibold text-slate-800">{task.title}</td>
+                                <td className="px-4 py-3">
+                                    <div className="flex -space-x-2">
+                                        {task.assignees.map(id => <img key={id} src={assigneeAvatars[id]} className="w-7 h-7 rounded-full border-2 border-white" alt="assignee" />)}
+                                    </div>
+                                </td>
+                                <td className="px-4 py-3">
+                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${statusClasses[task.status]}`}>
+                                        {task.status === 'inprogress' ? 'In Progress' : task.status}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-3 font-medium text-slate-600">{task.priority}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
 
 const MasterDashboardPage: React.FC = () => {
     return (
@@ -88,6 +204,8 @@ const MasterDashboardPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <TaskTracker />
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Activity Feed */}
