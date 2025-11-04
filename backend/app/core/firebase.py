@@ -26,36 +26,49 @@ def initialize_firebase():
         # Initialize Firebase credentials
         cred = None
 
+        # Try service account file first
         if settings.FIREBASE_CREDENTIALS_PATH and os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
-            # Use service account file
+            print(f"📁 Using Firebase credentials from: {settings.FIREBASE_CREDENTIALS_PATH}")
             cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
         elif "FIREBASE_CREDENTIALS_JSON" in os.environ:
             # Use environment variable
+            print("🔧 Using Firebase credentials from environment variable")
             cred_dict = json.loads(os.environ["FIREBASE_CREDENTIALS_JSON"])
             cred = credentials.Certificate(cred_dict)
         else:
             # Use default credentials (for development)
+            print("⚠️  Using default Firebase credentials (may not work for all services)")
             cred = credentials.ApplicationDefault()
 
         # Initialize Firebase app
+        app_config = {
+            'projectId': settings.FIREBASE_PROJECT_ID,
+        }
+
+        # Add database URL if provided
+        if settings.FIREBASE_DATABASE_URL:
+            app_config['databaseURL'] = settings.FIREBASE_DATABASE_URL
+
         _firebase_app = initialize_app(
             cred,
-            {
-                'projectId': settings.FIREBASE_PROJECT_ID,
-                'databaseURL': settings.FIREBASE_DATABASE_URL,
-            },
+            app_config,
             name='bde-system'
         )
 
         # Initialize Firebase services
         _firestore_client = firestore.Client(app=_firebase_app)
         _auth_client = auth.Client(app=_firebase_app)
-        _storage_client = storage.bucket(app=_firebase_app)
+        _storage_client = storage.bucket(app=_firebase_app, name=f"{settings.FIREBASE_PROJECT_ID}.appspot.com")
 
         print(f"✅ Firebase initialized successfully for project: {settings.FIREBASE_PROJECT_ID}")
+        print(f"🔥 Services: Firestore, Auth, Storage ready")
 
     except Exception as e:
         print(f"❌ Failed to initialize Firebase: {str(e)}")
+        print("🔍 Please check:")
+        print("   1. Firebase project exists and is properly configured")
+        print("   2. Service account has necessary permissions")
+        print("   3. Credentials file is valid and accessible")
         raise
 
 def get_firestore() -> firestore.Client:
