@@ -35,7 +35,8 @@ const ReportViewerModal: React.FC<{ isOpen: boolean; onClose: () => void; report
         const { visualization } = report.config;
         switch (visualization.type) {
             case 'Bar Chart':
-                return <div className="h-72"><BarChart data={data} /></div>;
+                // FIX: Cast data to the type expected by BarChart. This is safe because generateMockData returns the correct shape for a bar chart visualization.
+                return <div className="h-72"><BarChart data={data as { label: string; value: number; }[]} /></div>;
             case 'Table':
             default:
                 return (

@@ -7,6 +7,7 @@ import OnboardingPage from './pages/auth/OnboardingPage';
 import DashboardLayout from './components/layouts/DashboardLayout';
 import ProfilePage from './pages/profile/ProfilePage';
 import TeamDirectoryPage from './pages/team/TeamDirectoryPage';
+import TeamMemberProfilePage from './pages/team/TeamMemberProfilePage';
 import SettingsPage from './pages/settings/SettingsPage';
 import BdeDashboardPage from './pages/bde/DashboardPage';
 import LeadsPage from './pages/bde/LeadsPage';
@@ -57,6 +58,7 @@ function App() {
           <Route index element={<Navigate to="/bde/dashboard" />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="team" element={<TeamDirectoryPage />} />
+          <Route path="team/:memberId" element={<TeamMemberProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="chat" element={<InternalChatPage />} />
           <Route path="notifications" element={<NotificationCenterPage />} />

@@ -42,6 +42,13 @@ const activityFeed = [
 type Status = 'todo' | 'inprogress' | 'completed';
 type Priority = 'Important' | 'Meh' | 'OK' | 'High Priority' | 'Not that important';
 
+interface Comment {
+  user: string;
+  avatar: string;
+  text: string;
+  time: string;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -50,6 +57,7 @@ interface Task {
   comments: number;
   assignees: string[];
   assigner?: string;
+  commentData?: Comment[];
 }
 
 const KpiCard: React.FC<{ title: string; value: string; change: string; icon: React.ReactNode; color: string, delay: number }> = ({ title, value, change, icon, color, delay }) => (

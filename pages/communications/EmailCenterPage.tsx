@@ -237,7 +237,8 @@ const EmailCenterPage: React.FC = () => {
                     ) : selectedItem ? (
                         <>
                             <div className="p-4 border-b border-slate-200 flex justify-between items-center">
-                                <h3 className="text-lg font-bold text-slate-800 truncate">{'subject' in selectedItem ? selectedItem.subject : selectedItem.name}</h3>
+                                {/* FIX: The error "Property 'name' does not exist on type 'never'" originates here, despite the line number being reported incorrectly. The original logic `{'subject' in selectedItem ? selectedItem.subject : selectedItem.name}` fails because 'subject' exists on all types, making the 'else' branch unreachable and `selectedItem` of type `never`. This new logic correctly checks for the unique 'name' property on templates first. */}
+                                <h3 className="text-lg font-bold text-slate-800 truncate">{'name' in selectedItem ? selectedItem.name : selectedItem.subject}</h3>
                                 {activeFolder !== 'templates' && (
                                 <Button size="sm" variant="secondary" onClick={handleSuggestReply} isLoading={isAiLoading} leftIcon={<SparklesIcon className="w-4 h-4"/>}>Suggest Reply</Button>
                                 )}
