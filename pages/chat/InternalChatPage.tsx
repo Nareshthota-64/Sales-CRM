@@ -69,7 +69,42 @@ const initialConversations: { [key: string]: Message[] } = {
 
 // --- SUB-COMPONENTS ---
 
-const MessageBubble: React.FC<{ msg: Message; onStartReply: (msg: Message) => void }> = ({ msg, onStartReply }) => (
+const ReactionPicker: React.FC<{ onSelect: (emoji: string) => void; }> = ({ onSelect }) => {
+  const emojis = ['👍', '❤️', '😂', '🎉', '🚀'];
+  return (
+    <div className="absolute bottom-full right-0 mb-2 flex gap-1 p-1 bg-white border border-slate-200 rounded-full shadow-lg z-10 animate-fade-in" style={{ animationDuration: '0.1s' }}>
+      {emojis.map(emoji => (
+        <button key={emoji} onClick={() => onSelect(emoji)} className="p-1 rounded-full hover:bg-slate-200 text-xl transition-transform hover:scale-125">
+          {emoji}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+interface MessageBubbleProps {
+    msg: Message;
+    onStartReply: (msg: Message) => void;
+    onReaction: (messageId: string, emoji: string) => void;
+}
+
+const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, onStartReply, onReaction }) => {
+    const [isReactionMenuOpen, setIsReactionMenuOpen] = useState(false);
+    const reactionMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (reactionMenuRef.current && !reactionMenuRef.current.contains(event.target as Node)) {
+                setIsReactionMenuOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [reactionMenuRef]);
+
+    return (
     <div className="group relative flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50">
         <img src={msg.avatar} alt={msg.user} className="w-10 h-10 rounded-full flex-shrink-0" />
         <div className="flex-1">
@@ -78,11 +113,11 @@ const MessageBubble: React.FC<{ msg: Message; onStartReply: (msg: Message) => vo
                 <p className="text-xs text-slate-400">{msg.time}</p>
             </div>
             <p className={`text-slate-700 ${msg.isSystemMessage ? 'italic' : ''}`}>{msg.text}</p>
-            {msg.reactions && (
+            {msg.reactions && Object.keys(msg.reactions).length > 0 && (
                 <div className="flex gap-1 mt-1">
                     {Object.entries(msg.reactions).map(([emoji, users]) => {
-                        // FIX: Cast `users` to `string[]` to resolve TypeScript error where it's inferred as `unknown`.
                         const userList = users as string[];
+                        if (userList.length === 0) return null;
                         return (
                             <div key={emoji} className="relative group/reaction">
                                 <button className="px-2 py-0.5 bg-indigo-100/50 border border-indigo-200 rounded-full text-sm">
@@ -113,11 +148,23 @@ const MessageBubble: React.FC<{ msg: Message; onStartReply: (msg: Message) => vo
             )}
         </div>
         <div className="absolute top-2 right-4 flex gap-1 p-1 bg-white border border-slate-200 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-            <button className="p-1 text-slate-500 hover:bg-slate-100 rounded"><SmilePlusIcon className="w-5 h-5" /></button>
+            <div ref={reactionMenuRef} className="relative">
+                <button onClick={() => setIsReactionMenuOpen(prev => !prev)} className="p-1 text-slate-500 hover:bg-slate-100 rounded">
+                    <SmilePlusIcon className="w-5 h-5" />
+                </button>
+                {isReactionMenuOpen && (
+                    <ReactionPicker
+                        onSelect={(emoji) => {
+                            onReaction(msg.id, emoji);
+                            setIsReactionMenuOpen(false);
+                        }}
+                    />
+                )}
+            </div>
             <button onClick={() => onStartReply(msg)} className="p-1 text-slate-500 hover:bg-slate-100 rounded"><MessageCircleReplyIcon className="w-5 h-5" /></button>
         </div>
     </div>
-);
+)};
 
 
 // --- MAIN CHAT COMPONENT ---
@@ -181,6 +228,37 @@ const InternalChatPage: React.FC = () => {
         if (replyTo) {
             setReplyTo(null);
         }
+    };
+    
+    const handleReaction = (messageId: string, emoji: string) => {
+        setConversations(prev => {
+            const newConvos = { ...prev };
+            const conversation = [...(newConvos[activeConversation] || [])];
+            const messageIndex = conversation.findIndex(m => m.id === messageId);
+            if (messageIndex === -1) return prev;
+
+            const message = { ...conversation[messageIndex] };
+            const reactions = { ...(message.reactions || {}) };
+            const usersForEmoji = [...(reactions[emoji] || [])];
+
+            if (usersForEmoji.includes(currentUser.name)) {
+                // User has reacted, so remove reaction
+                reactions[emoji] = usersForEmoji.filter(u => u !== currentUser.name);
+            } else {
+                // User has not reacted, so add reaction
+                reactions[emoji] = [...usersForEmoji, currentUser.name];
+            }
+
+            // Clean up empty reaction arrays
+            if (reactions[emoji].length === 0) {
+                delete reactions[emoji];
+            }
+
+            message.reactions = reactions;
+            conversation[messageIndex] = message;
+            newConvos[activeConversation] = conversation;
+            return newConvos;
+        });
     };
     
     const handleAiAction = (action: 'summarize' | 'draft' | 'create_task') => {
@@ -287,7 +365,7 @@ const InternalChatPage: React.FC = () => {
                     <main className="flex-1 overflow-y-auto p-4 space-y-2">
                         {currentMessages.length > 0 ? (
                             currentMessages.map((msg) => (
-                                <MessageBubble key={msg.id} msg={msg} onStartReply={setReplyTo} />
+                                <MessageBubble key={msg.id} msg={msg} onStartReply={setReplyTo} onReaction={handleReaction} />
                             ))
                         ) : (
                             <div className="text-center text-slate-500 pt-16">
