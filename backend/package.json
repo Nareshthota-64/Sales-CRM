@@ -1,13 +1,15 @@
 {
-  "name": "backend",
+  "name": "sales-crm-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Advanced AI-driven Sales CRM Backend",
+  "main": "src/server.js",
   "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["crm", "sales", "ai", "backend", "nodejs", "express"],
+  "author": "Sales CRM Team",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
