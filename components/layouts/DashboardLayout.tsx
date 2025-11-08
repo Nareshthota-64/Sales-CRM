@@ -30,6 +30,8 @@ import StarIcon from '../icons/StarIcon';
 import CrosshairIcon from '../icons/CrosshairIcon';
 import BellIcon from '../icons/BellIcon';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
+import { meetingsDB, Meeting } from '../data/meetingsDB';
+import NotificationToast from '../ui/NotificationToast';
 
 
 const DashboardLayout: React.FC = () => {
@@ -37,6 +39,7 @@ const DashboardLayout: React.FC = () => {
     const [userRole, setUserRole] = useState<'bde' | 'master' | null>(null);
     const [isProfileOpen, setProfileOpen] = useState(false);
     const profileMenuRef = useRef<HTMLDivElement>(null);
+    const [notifications, setNotifications] = useState<Meeting[]>([]);
 
     useEffect(() => {
         const role = localStorage.getItem('userRole');
@@ -57,9 +60,48 @@ const DashboardLayout: React.FC = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        const checkMeetings = () => {
+            const allMeetings = meetingsDB.getAll();
+            const now = new Date();
+            const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+
+            allMeetings.forEach(meeting => {
+                const meetingStart = new Date(meeting.start);
+                // Check if meeting is upcoming in the next 5 mins and hasn't been notified
+                if (
+                    !meeting.notified &&
+                    meetingStart > now &&
+                    meetingStart <= fiveMinutesFromNow
+                ) {
+                    // Check if it's not already in the notification queue
+                    setNotifications(prev => {
+                        if (!prev.find(n => n.id === meeting.id)) {
+                             // Mark as notified in DB
+                            meetingsDB.update({ ...meeting, notified: true });
+                            return [...prev, meeting];
+                        }
+                        return prev;
+                    });
+                }
+            });
+        };
+
+        // Check immediately on load and then every 30 seconds
+        checkMeetings();
+        const interval = setInterval(checkMeetings, 30000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+
     const handleLogout = () => {
         localStorage.removeItem('userRole');
         navigate('/login');
+    };
+
+    const handleDismissNotification = (id: string) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
     };
 
     const bdeNavItems = [
@@ -135,7 +177,7 @@ const DashboardLayout: React.FC = () => {
                 <div className="p-6 border-b border-slate-200/80 h-20 flex items-center">
                     <Link to="/" className="flex items-center gap-3">
                         <img src="https://media.licdn.com/dms/image/v2/D4D0BAQEQHDp3om_eug/company-logo_200_200/company-logo_200_200/0/1702105920324/highq_labs_pvt_ltd_logo?e=2147483647&v=beta&t=scIhNIvxzHNCJLSbJEfkjTHSzC42y1kqWB_Lz0UOTvM" alt="HighQ-Labs Logo" className="w-8 h-8" />
-                        <span className="text-xl font-bold text-slate-800">BDE AI System</span>
+                        <span className="text-xl font-bold text-slate-800">Sales CRM</span>
                     </Link>
                 </div>
                 <nav className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -272,6 +314,19 @@ const DashboardLayout: React.FC = () => {
                         <Outlet />
                     </div>
                 </main>
+            </div>
+
+            {/* Notification Toast Container */}
+            <div aria-live="assertive" className="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-50">
+                <div className="w-full flex flex-col items-center space-y-4 sm:items-end">
+                    {notifications.map(meeting => (
+                        <NotificationToast
+                            key={meeting.id}
+                            meeting={meeting}
+                            onDismiss={handleDismissNotification}
+                        />
+                    ))}
+                </div>
             </div>
         </div>
     );

@@ -18,41 +18,8 @@ const SettingsPage: React.FC = () => {
             </div>
 
             <div className="space-y-8">
-                {/* Notifications Card */}
-                <div className="bg-white rounded-2xl shadow-md p-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                    <h3 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
-                        <BellIcon className="w-6 h-6 text-yellow-500" />
-                        Notifications
-                    </h3>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h4 className="font-semibold text-slate-700">Email Notifications</h4>
-                                <p className="text-sm text-slate-500">Receive updates and reports in your inbox.</p>
-                            </div>
-                            <ToggleSwitch />
-                        </div>
-                        <hr className="border-slate-100" />
-                        <div className="flex items-center justify-between">
-                             <div>
-                                <h4 className="font-semibold text-slate-700">In-App Notifications</h4>
-                                <p className="text-sm text-slate-500">Show notifications inside the application.</p>
-                            </div>
-                            <ToggleSwitch defaultChecked />
-                        </div>
-                        <hr className="border-slate-100" />
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h4 className="font-semibold text-slate-700">Push Notifications</h4>
-                                <p className="text-sm text-slate-500">Get alerts on your desktop or mobile device.</p>
-                            </div>
-                            <ToggleSwitch />
-                        </div>
-                    </div>
-                </div>
-
                 {/* Theme Card */}
-                <div className="bg-white rounded-2xl shadow-md p-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                <div className="bg-white rounded-2xl shadow-md p-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
                     <h3 className="text-2xl font-bold text-slate-800 mb-6">Theme</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <ThemeOption icon={<SunIcon className="w-6 h-6" />} label="Light" selected={theme === 'Light'} onClick={() => setTheme('Light')} />
@@ -62,7 +29,7 @@ const SettingsPage: React.FC = () => {
                 </div>
 
                 {/* Account Management Card */}
-                <div className="bg-white rounded-2xl shadow-md p-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+                <div className="bg-white rounded-2xl shadow-md p-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
                     <h3 className="text-2xl font-bold text-slate-800 mb-6">Account Management</h3>
                     <div className="space-y-4">
                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">

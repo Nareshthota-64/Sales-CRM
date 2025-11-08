@@ -1,5 +1,6 @@
 import React from 'react';
-import { Meeting } from '../../pages/communications/MeetingsPage';
+// FIX: The Meeting type is exported from meetingsDB, not the MeetingsPage component.
+import { Meeting } from '../data/meetingsDB';
 
 interface MonthViewProps {
   meetings: Meeting[];

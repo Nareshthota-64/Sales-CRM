@@ -36,7 +36,7 @@ const OnboardingPage: React.FC = () => {
           </div>
         </div>
 
-        <h1 className="text-4xl font-bold text-slate-800 mb-2">Welcome to the BDE AI System!</h1>
+        <h1 className="text-4xl font-bold text-slate-800 mb-2">Welcome to Sales CRM!</h1>
         <p className="text-lg text-slate-500 mb-10">Let's get your account set up in a few seconds.</p>
 
         <div className="space-y-8">

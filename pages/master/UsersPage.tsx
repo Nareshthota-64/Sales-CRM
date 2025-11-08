@@ -1,70 +1,87 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import Modal from '../../components/ui/Modal';
 import SearchIcon from '../../components/icons/SearchIcon';
 import PlusIcon from '../../components/icons/PlusIcon';
 import MoreHorizontalIcon from '../../components/icons/MoreHorizontalIcon';
 import UsersIcon from '../../components/icons/UsersIcon';
 import UserCheckIcon from '../../components/icons/UserCheckIcon';
-import AwardIcon from '../../components/icons/AwardIcon';
-import TrendingDownIcon from '../../components/icons/TrendingDownIcon';
+import DollarSignIcon from '../../components/icons/DollarSignIcon';
+import TrendingUpIcon from '../../components/icons/TrendingUpIcon';
 import ChevronUpIcon from '../../components/icons/ChevronUpIcon';
-import MailIcon from '../../components/icons/MailIcon';
-import UserIcon from '../../components/icons/UserIcon';
+import SparklineChart from '../../components/charts/SparklineChart';
+import CreateUserModal from '../../components/modals/CreateUserModal';
+import UserDetailFlyout from '../../components/master/UserDetailFlyout';
+import EditIcon from '../../components/icons/EditIcon';
+import UserXIcon from '../../components/icons/UserXIcon';
+import LockIcon from '../../components/icons/LockIcon';
+import { usersData, User, UserStatus } from '../../components/data/users';
 
-// Types
-type UserStatus = 'Active' | 'Inactive';
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  role: 'BDE' | 'Admin';
-  status: UserStatus;
-  leads: number;
-  conversionRate: number;
-  closedARR: number;
-}
-
-// Mock Data
-const usersData: User[] = [
-  { id: 'usr-1', name: 'Amélie Laurent', email: 'amelie@example.com', avatar: 'https://i.pravatar.cc/150?img=1', role: 'BDE', status: 'Active', leads: 125, conversionRate: 22, closedARR: 120500 },
-  { id: 'usr-2', name: 'Benoît Dubois', email: 'benoit@example.com', avatar: 'https://i.pravatar.cc/150?img=2', role: 'BDE', status: 'Active', leads: 98, conversionRate: 18, closedARR: 85000 },
-  { id: 'usr-3', name: 'Chloé Martin', email: 'chloe@example.com', avatar: 'https://i.pravatar.cc/150?img=3', role: 'BDE', status: 'Active', leads: 150, conversionRate: 25, closedARR: 152000 },
-  { id: 'usr-4', name: 'David Garcia', email: 'david@example.com', avatar: 'https://i.pravatar.cc/150?img=4', role: 'BDE', status: 'Inactive', leads: 45, conversionRate: 15, closedARR: 35000 },
-  { id: 'usr-5', name: 'Elise Moreau', email: 'elise@example.com', avatar: 'https://i.pravatar.cc/150?img=5', role: 'BDE', status: 'Active', leads: 82, conversionRate: 12, closedARR: 62000 },
-  { id: 'usr-6', name: 'François Lambert', email: 'francois@example.com', avatar: 'https://i.pravatar.cc/150?img=6', role: 'Admin', status: 'Active', leads: 0, conversionRate: 0, closedARR: 0 },
-];
-
-const statusStyles: Record<UserStatus, string> = {
+const statusStyles: Record<User['status'], string> = {
   Active: 'bg-green-100 text-green-800',
   Inactive: 'bg-slate-100 text-slate-800',
 };
 
-// Components
-const KpiCard: React.FC<{ title: string; value: string; icon: React.ReactNode; color: string; delay: number; data?: React.ReactNode; }> = ({ title, value, icon, color, delay, data }) => (
+const KpiCard: React.FC<{ title: string; value: string; icon: React.ReactNode; color: string; delay: number; }> = ({ title, value, icon, color, delay }) => (
     <div className="bg-white p-6 rounded-2xl shadow-sm animate-fade-in" style={{ animationDelay: `${delay}ms` }}>
         <div className="flex justify-between items-center">
             <p className="text-slate-500 font-medium">{title}</p>
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${color}`}>{icon}</div>
         </div>
         <p className="text-3xl font-bold text-slate-800 mt-1">{value}</p>
-        {data && <div className="mt-4">{data}</div>}
     </div>
 );
 
 const MasterUsersPage: React.FC = () => {
+    const [users, setUsers] = useState<User[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<UserStatus | 'All'>('All');
+    const [statusFilter, setStatusFilter] = useState<User['status'] | 'All'>('All');
     const [sortConfig, setSortConfig] = useState<{ key: keyof User | null; direction: 'asc' | 'desc' }>({ key: 'closedARR', direction: 'desc' });
-    const [isInviteModalOpen, setInviteModalOpen] = useState(false);
+    const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
 
-    const topPerformer = useMemo(() => usersData.reduce((prev, current) => (prev.closedARR > current.closedARR) ? prev : current), [usersData]);
-    const needsCoaching = useMemo(() => usersData.filter(u => u.role === 'BDE').reduce((prev, current) => (prev.conversionRate < current.conversionRate) ? prev : current), [usersData]);
+    const actionMenuRef = useRef<HTMLDivElement>(null);
+
+    const teamMetrics = useMemo(() => {
+        const activeUsers = users.filter(u => u.status === 'Active' && u.role === 'BDE');
+        if (activeUsers.length === 0) return { totalARR: 0, avgConversion: 0 };
+        const totalARR = activeUsers.reduce((sum, u) => sum + u.closedARR, 0);
+        const avgConversion = activeUsers.reduce((sum, u) => sum + u.conversionRate, 0) / activeUsers.length;
+        return { totalARR, avgConversion };
+    }, [users]);
+    
+    useEffect(() => {
+      const loadUsers = () => {
+        try {
+            const storedUsers = localStorage.getItem('bde-ai-users');
+            if (storedUsers) {
+                setUsers(JSON.parse(storedUsers));
+            } else {
+                localStorage.setItem('bde-ai-users', JSON.stringify(usersData));
+                setUsers(usersData);
+            }
+        } catch (error) {
+            console.error("Failed to load users from localStorage", error);
+            setUsers(usersData);
+        }
+      };
+      loadUsers();
+      window.addEventListener('storage', loadUsers);
+      return () => window.removeEventListener('storage', loadUsers);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+                setOpenActionMenu(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const filteredAndSortedUsers = useMemo(() => {
-        let filtered = usersData.filter(user =>
+        let filtered = users.filter(user =>
             (user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
             (statusFilter === 'All' || user.status === statusFilter)
         );
@@ -77,7 +94,7 @@ const MasterUsersPage: React.FC = () => {
             });
         }
         return filtered;
-    }, [searchTerm, statusFilter, sortConfig]);
+    }, [users, searchTerm, statusFilter, sortConfig]);
 
     const requestSort = (key: keyof User) => {
         let direction: 'asc' | 'desc' = 'asc';
@@ -91,6 +108,38 @@ const MasterUsersPage: React.FC = () => {
         if (sortConfig.key !== key) return null;
         return <ChevronUpIcon className={`w-4 h-4 ml-1 transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />;
     };
+    
+    const handleCreateUser = (userData: Omit<User, 'id' | 'avatar' | 'status' | 'leads' | 'conversionRate' | 'closedARR' | 'performanceHistory'>) => {
+        const newUser: User = {
+            id: `usr-${Date.now()}`,
+            ...userData,
+            avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+            status: 'Active',
+            leads: 0,
+            conversionRate: 0,
+            closedARR: 0,
+            performanceHistory: [],
+        };
+
+        const updatedUsers = [newUser, ...users];
+        setUsers(updatedUsers);
+        localStorage.setItem('bde-ai-users', JSON.stringify(updatedUsers));
+        
+        // This logic should be on the backend, but we'll simulate it
+        const credentials = JSON.parse(localStorage.getItem('bde-ai-credentials') || '{}');
+        credentials[userData.email] = (userData as any).password;
+        localStorage.setItem('bde-ai-credentials', JSON.stringify(credentials));
+
+        setCreateModalOpen(false);
+    };
+
+    const handleDeactivateUser = (userId: string) => {
+        // FIX: Explicitly type `updatedUsers` as `User[]` to ensure type compatibility with the state setter.
+        const updatedUsers: User[] = users.map(u => u.id === userId ? {...u, status: u.status === 'Active' ? 'Inactive' : 'Active'} : u);
+        setUsers(updatedUsers);
+        localStorage.setItem('bde-ai-users', JSON.stringify(updatedUsers));
+        setOpenActionMenu(null);
+    };
 
     return (
         <div className="space-y-8">
@@ -100,24 +149,10 @@ const MasterUsersPage: React.FC = () => {
             </header>
 
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <KpiCard title="Total Users" value={usersData.length.toString()} icon={<UsersIcon className="w-5 h-5 text-blue-600" />} color="bg-blue-100" delay={100} />
-                <KpiCard title="Active Users" value={usersData.filter(u => u.status === 'Active').length.toString()} icon={<UserCheckIcon className="w-5 h-5 text-green-600" />} color="bg-green-100" delay={200} />
-                <KpiCard 
-                    title="Top Performer" 
-                    value={topPerformer.name.split(' ')[0]} 
-                    icon={<AwardIcon className="w-5 h-5 text-yellow-600" />} 
-                    color="bg-yellow-100" 
-                    delay={300}
-                    data={<p className="text-sm font-semibold text-slate-600">${topPerformer.closedARR.toLocaleString()} Closed ARR</p>}
-                />
-                 <KpiCard 
-                    title="Needs Coaching" 
-                    value={needsCoaching.name.split(' ')[0]} 
-                    icon={<TrendingDownIcon className="w-5 h-5 text-red-600" />} 
-                    color="bg-red-100" 
-                    delay={400}
-                    data={<p className="text-sm font-semibold text-slate-600">{needsCoaching.conversionRate}% Conversion Rate</p>}
-                />
+                <KpiCard title="Total Team ARR" value={`$${(teamMetrics.totalARR / 1000000).toFixed(2)}M`} icon={<DollarSignIcon className="w-5 h-5 text-green-600" />} color="bg-green-100" delay={100} />
+                <KpiCard title="Active BDEs" value={users.filter(u => u.status === 'Active' && u.role === 'BDE').length.toString()} icon={<UserCheckIcon className="w-5 h-5 text-blue-600" />} color="bg-blue-100" delay={200} />
+                <KpiCard title="Avg. Conversion Rate" value={`${teamMetrics.avgConversion.toFixed(1)}%`} icon={<TrendingUpIcon className="w-5 h-5 text-indigo-600" />} color="bg-indigo-100" delay={300} />
+                <KpiCard title="Total Users" value={users.length.toString()} icon={<UsersIcon className="w-5 h-5 text-slate-600" />} color="bg-slate-100" delay={400} />
             </section>
 
             <main className="bg-white p-6 rounded-2xl shadow-sm animate-fade-in" style={{ animationDelay: '500ms' }}>
@@ -133,7 +168,7 @@ const MasterUsersPage: React.FC = () => {
                             <option value="Inactive">Inactive</option>
                         </select>
                     </div>
-                    <Button onClick={() => setInviteModalOpen(true)} leftIcon={<PlusIcon className="w-4 h-4" />}>Invite User</Button>
+                    <Button onClick={() => setCreateModalOpen(true)} leftIcon={<PlusIcon className="w-4 h-4" />}>Create User</Button>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -141,37 +176,48 @@ const MasterUsersPage: React.FC = () => {
                         <thead className="text-xs text-slate-500 uppercase border-b border-slate-200">
                             <tr>
                                 <th className="px-4 py-3 cursor-pointer" onClick={() => requestSort('name')}>User</th>
-                                <th className="px-4 py-3">Role</th>
                                 <th className="px-4 py-3">Status</th>
-                                <th className="px-4 py-3 cursor-pointer flex items-center" onClick={() => requestSort('leads')}>Leads {getSortIndicator('leads')}</th>
-                                <th className="px-4 py-3 cursor-pointer flex items-center" onClick={() => requestSort('conversionRate')}>Conv. Rate {getSortIndicator('conversionRate')}</th>
-                                <th className="px-4 py-3 cursor-pointer flex items-center" onClick={() => requestSort('closedARR')}>Closed ARR {getSortIndicator('closedARR')}</th>
+                                <th className="px-4 py-3 cursor-pointer" onClick={() => requestSort('leads')}>Leads {getSortIndicator('leads')}</th>
+                                <th className="px-4 py-3 cursor-pointer" onClick={() => requestSort('conversionRate')}>Conv. % {getSortIndicator('conversionRate')}</th>
+                                <th className="px-4 py-3 cursor-pointer" onClick={() => requestSort('closedARR')}>Closed ARR {getSortIndicator('closedARR')}</th>
+                                <th className="px-4 py-3">Performance Trend</th>
                                 <th className="px-4 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredAndSortedUsers.map((user, index) => (
-                                <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors animate-fade-in" style={{ animationDelay: `${index * 30}ms`}}>
+                                <tr key={user.id} onClick={() => setSelectedUser(user)} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors animate-fade-in cursor-pointer" style={{ animationDelay: `${index * 30}ms`}}>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
                                             <img src={user.avatar} alt={user.name} className="w-9 h-9 rounded-full"/>
                                             <div>
                                                 <p className="font-bold text-slate-800">{user.name}</p>
-                                                <p className="text-slate-500 text-xs">{user.email}</p>
+                                                <p className="text-slate-500 text-xs">{user.role}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3 font-medium text-slate-600">{user.role}</td>
                                     <td className="px-4 py-3">
                                         <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${statusStyles[user.status]}`}>{user.status}</span>
                                     </td>
                                     <td className="px-4 py-3 font-semibold text-slate-700">{user.leads}</td>
                                     <td className="px-4 py-3 font-semibold text-slate-700">{user.conversionRate}%</td>
                                     <td className="px-4 py-3 font-bold text-indigo-600">${user.closedARR.toLocaleString()}</td>
-                                    <td className="px-4 py-3 text-right">
-                                        <button className="p-2 text-slate-500 hover:bg-slate-200 rounded-full transition-colors">
+                                    <td className="px-4 py-3">
+                                        {user.performanceHistory.length > 1 && <SparklineChart data={user.performanceHistory.map(p => p.arr)} />}
+                                    </td>
+                                    <td className="px-4 py-3 text-right relative">
+                                        <button onClick={(e) => { e.stopPropagation(); setOpenActionMenu(openActionMenu === user.id ? null : user.id)}} className="p-2 text-slate-500 hover:bg-slate-200 rounded-full transition-colors">
                                             <MoreHorizontalIcon className="w-5 h-5" />
                                         </button>
+                                        {openActionMenu === user.id && (
+                                            <div ref={actionMenuRef} className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-20 p-1">
+                                                <button className="w-full flex items-center gap-2 p-2 text-sm text-left rounded hover:bg-slate-100"><EditIcon className="w-4 h-4"/> Edit User</button>
+                                                <button onClick={(e) => {e.stopPropagation(); handleDeactivateUser(user.id)}} className="w-full flex items-center gap-2 p-2 text-sm text-left rounded hover:bg-slate-100">
+                                                    <UserXIcon className="w-4 h-4"/> {user.status === 'Active' ? 'Deactivate' : 'Activate'}
+                                                </button>
+                                                <button className="w-full flex items-center gap-2 p-2 text-sm text-left rounded hover:bg-slate-100"><LockIcon className="w-4 h-4"/> Reset Password</button>
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -180,27 +226,8 @@ const MasterUsersPage: React.FC = () => {
                 </div>
             </main>
             
-            <Modal isOpen={isInviteModalOpen} onClose={() => setInviteModalOpen(false)}>
-                <div className="p-2">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Invite New User</h2>
-                    <p className="text-slate-500 mb-6">Enter the details below to send an invitation.</p>
-                    <form className="space-y-5">
-                        <Input label="Full Name" id="invite-name" type="text" placeholder="John Doe" icon={<UserIcon className="w-5 h-5 text-gray-400" />} />
-                        <Input label="Email Address" id="invite-email" type="email" placeholder="john.doe@company.com" icon={<MailIcon className="w-5 h-5 text-gray-400" />} />
-                        <div>
-                             <label htmlFor="role" className="block text-sm font-medium text-gray-500 mb-2">Role</label>
-                             <select id="role" className="w-full py-4 px-6 bg-gray-100/60 rounded-full text-gray-800 border border-transparent focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition-all duration-300">
-                                <option>Business Development Executive (BDE)</option>
-                                <option>Admin</option>
-                             </select>
-                        </div>
-                        <div className="pt-4 flex justify-end gap-3">
-                            <Button type="button" variant="secondary" onClick={() => setInviteModalOpen(false)}>Cancel</Button>
-                            <Button type="submit" onClick={(e) => { e.preventDefault(); setInviteModalOpen(false); }}>Send Invite</Button>
-                        </div>
-                    </form>
-                </div>
-            </Modal>
+            <CreateUserModal isOpen={isCreateModalOpen} onClose={() => setCreateModalOpen(false)} onSave={handleCreateUser} />
+            <UserDetailFlyout user={selectedUser} teamAverage={teamMetrics} onClose={() => setSelectedUser(null)} />
         </div>
     );
 };

@@ -61,10 +61,21 @@ const LoginPage: React.FC = () => {
             if (email === 'master@nr123' && password === '2628') {
                 localStorage.setItem('userRole', 'master');
                 targetPath = '/master/dashboard';
-            } else if (email && password) {
-                // Simulate a regular BDE login
-                localStorage.setItem('userRole', 'bde');
-                targetPath = '/bde/dashboard';
+            } else {
+                 const credentials = JSON.parse(localStorage.getItem('bde-ai-credentials') || '{}');
+                 const allUsers = JSON.parse(localStorage.getItem('bde-ai-users') || '[]');
+
+                 if (credentials[email] && credentials[email] === password) {
+                     const user = allUsers.find((u: any) => u.email === email);
+                     const userRole = user?.role.toLowerCase() === 'admin' ? 'master' : 'bde';
+                     localStorage.setItem('userRole', userRole);
+
+                     if (userRole === 'master') {
+                         targetPath = '/master/dashboard';
+                     } else {
+                         targetPath = '/bde/dashboard';
+                     }
+                 }
             }
 
             if (targetPath) {
@@ -92,7 +103,7 @@ const LoginPage: React.FC = () => {
                         <div className="flex items-center mb-8 animate-fade-in">
                              <img src="https://media.licdn.com/dms/image/v2/D4D0BAQEQHDp3om_eug/company-logo_200_200/company-logo_200_200/0/1702105920324/highq_labs_pvt_ltd_logo?e=2147483647&v=beta&t=scIhNIvxzHNCJLSbJEfkjTHSzC42y1kqWB_Lz0UOTvM" alt="HighQ-Labs Logo" className="w-12 h-12" />
                              <h1 className="ml-4 text-3xl font-bold text-slate-800 tracking-tight">
-                                BDE AI System
+                                Sales CRM
                             </h1>
                         </div>
                         
@@ -137,13 +148,6 @@ const LoginPage: React.FC = () => {
                                 </Button>
                             </div>
                         </form>
-
-                        <p className="mt-8 text-center text-sm text-slate-500 animate-fade-in" style={{ animationDelay: '0.3s'}}>
-                            Don't have an account?{' '}
-                            <Link to="/register" className="font-bold text-slate-800 hover:underline">
-                                Sign up
-                            </Link>
-                        </p>
                     </div>
                 </div>
                  {/* Image Panel */}
@@ -155,9 +159,6 @@ const LoginPage: React.FC = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-indigo-100/20 to-transparent"></div>
                     <div className="absolute inset-0 p-8">
-                       <Link to="/register" className="absolute top-6 right-6 w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-slate-700 hover:bg-white transition-colors">
-                            <XIcon className="w-5 h-5" />
-                       </Link>
                        <ProfileWidget />
                        <KpiWidget />
                        <ActivityStreamWidget />

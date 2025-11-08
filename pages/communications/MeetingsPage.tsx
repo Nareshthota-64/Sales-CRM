@@ -1,30 +1,14 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
+import React, { useState, useCallback, useEffect } from 'react';
 import CalendarHeader from '../../components/calendar/CalendarHeader';
 import MonthView from '../../components/calendar/MonthView';
 import WeekView from '../../components/calendar/WeekView';
 import DayView from '../../components/calendar/DayView';
 import MeetingModal from '../../components/modals/MeetingModal';
 import MeetingDetailModal from '../../components/modals/MeetingDetailModal';
-
-export interface Meeting {
-    id: string;
-    title: string;
-    start: Date;
-    end: Date;
-    attendees: string[];
-    agenda: string;
-}
-
-const initialMeetings: Meeting[] = [
-    { id: '1', title: 'Q3 Strategy with Innovatech', start: new Date('2024-07-15T10:00:00'), end: new Date('2024-07-15T11:30:00'), attendees: ['John Doe'], agenda: 'Discuss Q3 goals.' },
-    { id: '2', title: 'Demo for Solutions Inc.', start: new Date('2024-07-15T14:00:00'), end: new Date('2024-07-15T15:00:00'), attendees: ['Jane Smith'], agenda: 'Product demo.' },
-    { id: '3', title: 'Team Sync', start: new Date('2024-07-18T09:00:00'), end: new Date('2024-07-18T09:30:00'), attendees: ['Sales Team'], agenda: 'Weekly check-in.' },
-    { id: '4', title: 'Follow-up with DataCorp', start: new Date('2024-07-25T11:00:00'), end: new Date('2024-07-25T11:30:00'), attendees: ['Sam Wilson'], agenda: 'Follow up on proposal.' },
-];
+import { Meeting, meetingsDB } from '../../components/data/meetingsDB';
 
 const MeetingsPage: React.FC = () => {
-    const [meetings, setMeetings] = useState<Meeting[]>(initialMeetings);
+    const [meetings, setMeetings] = useState<Meeting[]>(meetingsDB.getAll());
     const [currentDate, setCurrentDate] = useState(new Date('2024-07-15')); // Fixed date for consistent demo
     const [activeView, setActiveView] = useState<'month' | 'week' | 'day'>('week');
     const [now, setNow] = useState(new Date());
@@ -33,6 +17,14 @@ const MeetingsPage: React.FC = () => {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
     const [modalDate, setModalDate] = useState<Date | null>(null);
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setMeetings(meetingsDB.getAll());
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -55,26 +47,32 @@ const MeetingsPage: React.FC = () => {
     const handleSaveMeeting = (meetingData: Omit<Meeting, 'id'>) => {
         if (selectedMeeting) {
             // Update
-            setMeetings(meetings.map(m => m.id === selectedMeeting.id ? { ...meetingData, id: m.id } : m));
+            meetingsDB.update({ ...meetingData, id: selectedMeeting.id });
         } else {
             // Create
-            setMeetings([...meetings, { ...meetingData, id: `meeting-${Date.now()}` }]);
+            meetingsDB.add(meetingData);
         }
+        setMeetings(meetingsDB.getAll());
         setIsCreateModalOpen(false);
         setSelectedMeeting(null);
     };
 
     const handleDeleteMeeting = () => {
         if (selectedMeeting) {
-            setMeetings(meetings.filter(m => m.id !== selectedMeeting.id));
+            meetingsDB.delete(selectedMeeting.id);
+            setMeetings(meetingsDB.getAll());
             setIsDetailModalOpen(false);
             setSelectedMeeting(null);
         }
     };
 
     const handleUpdateMeetingTime = useCallback((id: string, newStart: Date, newEnd: Date) => {
-        setMeetings(prevMeetings => prevMeetings.map(m => m.id === id ? { ...m, start: newStart, end: newEnd } : m));
-    }, []);
+        const meetingToUpdate = meetings.find(m => m.id === id);
+        if (meetingToUpdate) {
+            meetingsDB.update({ ...meetingToUpdate, start: newStart, end: newEnd });
+            setMeetings(meetingsDB.getAll());
+        }
+    }, [meetings]);
 
     return (
         <div className="h-[calc(100vh-4rem)] flex flex-col font-sans">

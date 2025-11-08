@@ -1,12 +1,13 @@
 import React from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
-import { Meeting } from '../../pages/communications/MeetingsPage';
+import { Meeting } from '../data/meetingsDB';
 import CalendarIcon from '../icons/CalendarIcon';
 import ClockIcon from '../icons/ClockIcon';
 import UsersIcon from '../icons/UsersIcon';
 import EditIcon from '../icons/EditIcon';
 import TrashIcon from '../icons/TrashIcon';
+import LinkIcon from '../icons/LinkIcon';
 
 interface MeetingDetailModalProps {
   isOpen: boolean;
@@ -35,7 +36,10 @@ const MeetingDetailModal: React.FC<MeetingDetailModalProps> = ({ isOpen, onClose
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             <div className="p-2">
-                <h2 className="text-2xl font-bold text-slate-800 mb-6">{meeting.title}</h2>
+                <div className="flex justify-between items-start">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-6">{meeting.title}</h2>
+                    {meeting.link && <Button onClick={() => window.open(meeting.link, '_blank')}>Join Meeting</Button>}
+                </div>
                 <div className="space-y-4">
                     <DetailItem icon={<CalendarIcon className="w-5 h-5" />} label="Date">
                         <p>{formatDate(meeting.start)}</p>
@@ -48,8 +52,13 @@ const MeetingDetailModal: React.FC<MeetingDetailModalProps> = ({ isOpen, onClose
                             {meeting.attendees.map(att => <span key={att} className="bg-slate-100 text-slate-700 text-sm font-medium px-2 py-1 rounded-md">{att}</span>)}
                         </div>
                     </DetailItem>
-                    <DetailItem icon={<FileTextIcon className="w-5 h-5" />} label="Agenda">
-                        <div className="whitespace-pre-wrap text-sm bg-slate-50 p-3 rounded-md max-h-40 overflow-y-auto">{meeting.agenda}</div>
+                    {meeting.link && (
+                        <DetailItem icon={<LinkIcon className="w-5 h-5" />} label="Meeting Link">
+                            <a href={meeting.link} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline break-all">{meeting.link}</a>
+                        </DetailItem>
+                    )}
+                    <DetailItem icon={<FileTextIcon className="w-5 h-5" />} label="Notes/Agenda">
+                        <div className="whitespace-pre-wrap text-sm bg-slate-50 p-3 rounded-md max-h-40 overflow-y-auto">{meeting.notes || 'No notes for this meeting.'}</div>
                     </DetailItem>
                 </div>
                 <div className="pt-6 mt-6 border-t border-slate-200 flex justify-end gap-3">

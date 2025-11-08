@@ -266,7 +266,7 @@ const InternalChatPage: React.FC = () => {
         const lastMessage = currentMessages[currentMessages.length - 1];
 
         const systemMessage = (text: string) => ({
-            id: `sys-${Date.now()}`, user: 'BDE-AI', avatar: 'https://media.licdn.com/dms/image/v2/D4D0BAQEQHDp3om_eug/company-logo_200_200/company-logo_200_200/0/1702105920324/highq_labs_pvt_ltd_logo?e=2147483647&v=beta&t=scIhNIvxzHNCJLSbJEfkjTHSzC42y1kqWB_Lz0UOTvM',
+            id: `sys-${Date.now()}`, user: 'SalesCRM-AI', avatar: 'https://media.licdn.com/dms/image/v2/D4D0BAQEQHDp3om_eug/company-logo_200_200/company-logo_200_200/0/1702105920324/highq_labs_pvt_ltd_logo?e=2147483647&v=beta&t=scIhNIvxzHNCJLSbJEfkjTHSzC42y1kqWB_Lz0UOTvM',
             text, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), isSystemMessage: true,
         });
 

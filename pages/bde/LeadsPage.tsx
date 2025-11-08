@@ -13,15 +13,25 @@ import EditIcon from '../../components/icons/EditIcon';
 import UserPlusIcon from '../../components/icons/UserPlusIcon';
 import StickyNoteIcon from '../../components/icons/StickyNoteIcon';
 import TrashIcon from '../../components/icons/TrashIcon';
+import Modal from '../../components/ui/Modal';
+import Button from '../../components/ui/Button';
+import MailIcon from '../../components/icons/MailIcon';
+import PhoneIcon from '../../components/icons/PhoneIcon';
+import LinkedinIcon from '../../components/icons/LinkedinIcon';
 
 // Types
-type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Unqualified' | 'Converted';
+type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Negotiation' | 'Unqualified' | 'Closed';
 type AIScore = 'Hot' | 'Warm' | 'Cold';
-type LeadSource = 'Webinar' | 'Cold Call' | 'Referral' | 'Website' | 'Advertisement';
+type LeadSource = 'Webinar' | 'Cold Call' | 'Referral' | 'Website' | 'Advertisement' | 'Other';
 
 interface Lead {
   id: string;
   name: string;
+  email: string;
+  phone: string;
+  designation: string;
+  linkedin: string;
+  location: string;
   company: string;
   companyLogo: string;
   status: LeadStatus;
@@ -29,22 +39,23 @@ interface Lead {
   source: LeadSource;
   lastContact: string;
   assignedTo: string;
+  notes?: string;
 }
 
 // Mock Data
 const leadsData: Lead[] = [
-  { id: 'lead-1', name: 'John Doe', company: 'Innovatech', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600', status: 'Qualified', aiScore: 'Hot', source: 'Webinar', lastContact: '2 hours ago', assignedTo: '1' },
-  { id: 'lead-2', name: 'Jane Smith', company: 'Solutions Inc.', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=red&shade=500', status: 'New', aiScore: 'Hot', source: 'Referral', lastContact: '1 day ago', assignedTo: '2' },
-  { id: 'lead-3', name: 'Sam Wilson', company: 'DataCorp', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=green&shade=500', status: 'Contacted', aiScore: 'Warm', source: 'Website', lastContact: '3 days ago', assignedTo: '1' },
-  { id: 'lead-4', name: 'Patricia Williams', company: 'FutureGadget', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=yellow&shade=500', status: 'New', aiScore: 'Cold', source: 'Cold Call', lastContact: '1 week ago', assignedTo: '3' },
-  { id: 'lead-5', name: 'Michael Brown', company: 'Synergy LLC', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=blue&shade=500', status: 'Unqualified', aiScore: 'Cold', source: 'Advertisement', lastContact: '2 weeks ago', assignedTo: '2' },
-  { id: 'lead-6', name: 'Linda Davis', company: 'Quantum Leap', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=purple&shade=500', status: 'Converted', aiScore: 'Hot', source: 'Referral', lastContact: '1 month ago', assignedTo: '1' },
-  { id: 'lead-7', name: 'James Miller', company: 'NextGen AI', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=pink&shade=500', status: 'Contacted', aiScore: 'Warm', source: 'Webinar', lastContact: '5 days ago', assignedTo: '3' },
+  { id: 'lead-1', name: 'John Doe', email: 'john.d@innovatech.com', phone: '555-1234', designation: 'VP of Engineering', linkedin: 'linkedin.com/in/johndoe', location: 'San Francisco, CA', company: 'Innovatech', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600', status: 'Qualified', aiScore: 'Hot', source: 'Webinar', lastContact: '2 hours ago', assignedTo: 'usr-1' },
+  { id: 'lead-2', name: 'Jane Smith', email: 'jane.s@solutions.com', phone: '555-5678', designation: 'Product Manager', linkedin: 'linkedin.com/in/janesmith', location: 'New York, NY', company: 'Solutions Inc.', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=red&shade=500', status: 'New', aiScore: 'Hot', source: 'Referral', lastContact: '1 day ago', assignedTo: 'usr-2' },
+  { id: 'lead-3', name: 'Sam Wilson', email: 'sam.w@datacorp.co', phone: '555-8765', designation: 'Data Scientist', linkedin: 'linkedin.com/in/samwilson', location: 'Austin, TX', company: 'DataCorp', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=green&shade=500', status: 'Contacted', aiScore: 'Warm', source: 'Website', lastContact: '3 days ago', assignedTo: 'usr-1' },
+  { id: 'lead-4', name: 'Patricia Williams', email: 'pat.w@futuregadget.io', phone: '555-4321', designation: 'CEO', linkedin: 'linkedin.com/in/patriciaw', location: 'Boston, MA', company: 'FutureGadget', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=yellow&shade=500', status: 'New', aiScore: 'Cold', source: 'Cold Call', lastContact: '1 week ago', assignedTo: 'usr-3' },
+  { id: 'lead-5', name: 'Michael Brown', email: 'm.brown@synergy.llc', phone: '555-3456', designation: 'Operations Manager', linkedin: 'linkedin.com/in/michaelbrown', location: 'Chicago, IL', company: 'Synergy LLC', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=blue&shade=500', status: 'Unqualified', aiScore: 'Cold', source: 'Advertisement', lastContact: '2 weeks ago', assignedTo: 'usr-2' },
+  { id: 'lead-6', name: 'Linda Davis', email: 'linda.d@quantum.ai', phone: '555-6789', designation: 'CTO', linkedin: 'linkedin.com/in/lindadavis', location: 'San Francisco, CA', company: 'Quantum Leap', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=purple&shade=500', status: 'Closed', aiScore: 'Hot', source: 'Referral', lastContact: '1 month ago', assignedTo: 'usr-1' },
+  { id: 'lead-7', name: 'James Miller', email: 'j.miller@nextgen.ai', phone: '555-9876', designation: 'Lead Developer', linkedin: 'linkedin.com/in/jamesmiller', location: 'Seattle, WA', company: 'NextGen AI', companyLogo: 'https://tailwindui.com/img/logos/mark.svg?color=pink&shade=500', status: 'Proposal', aiScore: 'Warm', source: 'Webinar', lastContact: '5 days ago', assignedTo: 'usr-3' },
 ];
 
 const assigneeAvatars: { [key: string]: string } = {
-  '1': 'https://i.pravatar.cc/150?img=1', '2': 'https://i.pravatar.cc/150?img=2',
-  '3': 'https://i.pravatar.cc/150?img=3', '4': 'https://i.pravatar.cc/150?img=4',
+  'usr-1': 'https://i.pravatar.cc/150?img=1', 'usr-2': 'https://i.pravatar.cc/150?img=2',
+  'usr-3': 'https://i.pravatar.cc/150?img=3', 'usr-4': 'https://i.pravatar.cc/150?img=4',
 };
 
 // Style Mappings
@@ -52,8 +63,10 @@ const statusStyles: Record<LeadStatus, string> = {
   New: 'bg-blue-100 text-blue-800',
   Contacted: 'bg-yellow-100 text-yellow-800',
   Qualified: 'bg-indigo-100 text-indigo-800',
+  Proposal: 'bg-purple-100 text-purple-800',
+  Negotiation: 'bg-orange-100 text-orange-800',
   Unqualified: 'bg-slate-100 text-slate-800',
-  Converted: 'bg-green-100 text-green-800',
+  Closed: 'bg-green-100 text-green-800',
 };
 
 const aiScoreStyles: Record<AIScore, string> = {
@@ -62,8 +75,9 @@ const aiScoreStyles: Record<AIScore, string> = {
   Cold: 'bg-blue-500',
 };
 
-const allStatuses = ['New', 'Contacted', 'Qualified', 'Unqualified', 'Converted'];
-const allSources = ['Webinar', 'Cold Call', 'Referral', 'Website', 'Advertisement'];
+const allStatuses: LeadStatus[] = ['New', 'Contacted', 'Qualified', 'Proposal', 'Negotiation', 'Unqualified', 'Closed'];
+const allSources: LeadSource[] = ['Webinar', 'Cold Call', 'Referral', 'Website', 'Advertisement', 'Other'];
+const allAiScores: AIScore[] = ['Hot', 'Warm', 'Cold'];
 
 // Components
 const KpiCard: React.FC<{ title: string; value: string; change: string; icon: React.ReactNode; color: string, delay: number }> = ({ title, value, change, icon, color, delay }) => (
@@ -90,12 +104,22 @@ const ActionMenuItem: React.FC<{ icon: React.ReactNode; label: string; onClick: 
 
 
 const LeadsPage: React.FC = () => {
-    const [leads, setLeads] = useState<Lead[]>(leadsData);
+    const [leads, setLeads] = useState<Lead[]>(() => {
+        const role = localStorage.getItem('userRole');
+        if (role === 'bde') {
+            // Hardcode 'usr-1' for Amélie Laurent for demo purposes
+            return leadsData.filter(l => l.assignedTo === 'usr-1');
+        }
+        return leadsData;
+    });
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<LeadStatus | 'All'>('All');
-    const [sourceFilter, setSourceFilter] = useState<LeadSource | 'All'>('All');
+    const [filters, setFilters] = useState({ status: 'All', source: 'All', aiScore: 'All', location: '' });
     const [isAiSortActive, setIsAiSortActive] = useState(false);
     const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
+    const [selectedIds, setSelectedIds] = useState(new Set<string>());
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+    
     const navigate = useNavigate();
     const actionMenuRef = useRef<HTMLDivElement>(null);
 
@@ -111,9 +135,14 @@ const LeadsPage: React.FC = () => {
 
     const filteredAndSortedLeads = useMemo(() => {
         let filtered = leads.filter(lead =>
-            (lead.name.toLowerCase().includes(searchTerm.toLowerCase()) || lead.company.toLowerCase().includes(searchTerm.toLowerCase())) &&
-            (statusFilter === 'All' || lead.status === statusFilter) &&
-            (sourceFilter === 'All' || lead.source === sourceFilter)
+            (lead.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+             lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             lead.location.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (filters.status === 'All' || lead.status === filters.status) &&
+            (filters.source === 'All' || lead.source === filters.source) &&
+            (filters.aiScore === 'All' || lead.aiScore === filters.aiScore) &&
+            (filters.location === '' || lead.location.toLowerCase().includes(filters.location.toLowerCase()))
         );
 
         if (isAiSortActive) {
@@ -122,7 +151,36 @@ const LeadsPage: React.FC = () => {
         }
         
         return filtered;
-    }, [leads, searchTerm, statusFilter, sourceFilter, isAiSortActive]);
+    }, [leads, searchTerm, filters, isAiSortActive]);
+
+    const handleSelect = (id: string) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedIds(newSelected);
+    };
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            setSelectedIds(new Set(filteredAndSortedLeads.map(l => l.id)));
+        } else {
+            setSelectedIds(new Set());
+        }
+    };
+    
+    const handleBulkDelete = () => {
+        setLeads(leads.filter(l => !selectedIds.has(l.id)));
+        setSelectedIds(new Set());
+    };
+
+    const handleBulkStatusChange = (newStatus: LeadStatus) => {
+        setLeads(leads.map(l => selectedIds.has(l.id) ? { ...l, status: newStatus } : l));
+        setSelectedIds(new Set());
+        setIsStatusModalOpen(false);
+    };
 
     return (
         <div className="space-y-8">
@@ -160,14 +218,9 @@ const LeadsPage: React.FC = () => {
                             <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input type="text" placeholder="Search leads..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full sm:w-64 bg-slate-50 rounded-lg py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                         </div>
-                        <select onChange={e => setStatusFilter(e.target.value as any)} value={statusFilter} className="bg-slate-50 border-none rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500">
-                            <option value="All">All Statuses</option>
-                            {allStatuses.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                        <select onChange={e => setSourceFilter(e.target.value as any)} value={sourceFilter} className="bg-slate-50 border-none rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500">
-                             <option value="All">All Sources</option>
-                            {allSources.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
+                        <Button variant="secondary" size="sm" onClick={() => setIsFilterModalOpen(true)} leftIcon={<FilterIcon className="w-4 h-4" />}>
+                            Advanced Filters
+                        </Button>
                     </div>
                      <button onClick={() => setIsAiSortActive(!isAiSortActive)} className={`flex items-center gap-2 py-2 px-4 rounded-lg font-semibold text-sm transition-all duration-300 ${isAiSortActive ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
                         <ZapIcon className={`w-5 h-5 transition-colors ${isAiSortActive ? 'text-yellow-300' : 'text-indigo-500'}`} />
@@ -179,29 +232,29 @@ const LeadsPage: React.FC = () => {
                     <table className="w-full text-sm text-left">
                         <thead className="text-xs text-slate-500 uppercase border-b border-slate-200">
                             <tr>
+                                <th className="p-4 w-12"><input type="checkbox" onChange={handleSelectAll} checked={selectedIds.size > 0 && selectedIds.size === filteredAndSortedLeads.length} className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500" /></th>
                                 <th className="px-4 py-3">Lead Name</th>
                                 <th className="px-4 py-3">AI Score</th>
                                 <th className="px-4 py-3">Status</th>
-                                <th className="px-4 py-3">Source</th>
+                                <th className="px-4 py-3">Contact</th>
+                                <th className="px-4 py-3">Location</th>
                                 <th className="px-4 py-3">Last Contact</th>
-                                <th className="px-4 py-3">Assigned To</th>
                                 <th className="px-4 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredAndSortedLeads.map((lead, index) => (
                                 <tr 
-                                    key={lead.id} 
-                                    onClick={() => navigate(`/bde/leads/${lead.id}`)}
-                                    className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors cursor-pointer animate-fade-in" 
-                                    style={{ animationDelay: `${index * 30}ms`}}
+                                    key={lead.id}
+                                    className={`border-b border-slate-100 transition-colors ${selectedIds.has(lead.id) ? 'bg-indigo-50' : 'hover:bg-slate-50/50'}`} 
                                 >
-                                    <td className="px-4 py-3">
+                                    <td className="p-4"><input type="checkbox" checked={selectedIds.has(lead.id)} onChange={() => handleSelect(lead.id)} className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500" /></td>
+                                    <td className="px-4 py-3 cursor-pointer" onClick={() => navigate(`/bde/leads/${lead.id}`)}>
                                         <div className="flex items-center gap-3">
                                             <img src={lead.companyLogo} alt={lead.company} className="w-8 h-8"/>
                                             <div>
                                                 <p className="font-bold text-slate-800">{lead.name}</p>
-                                                <p className="text-slate-500">{lead.company}</p>
+                                                <p className="text-slate-500">{lead.designation}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -214,11 +267,15 @@ const LeadsPage: React.FC = () => {
                                     <td className="px-4 py-3">
                                         <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${statusStyles[lead.status]}`}>{lead.status}</span>
                                     </td>
-                                    <td className="px-4 py-3 font-medium text-slate-600">{lead.source}</td>
-                                    <td className="px-4 py-3 text-slate-500">{lead.lastContact}</td>
                                     <td className="px-4 py-3">
-                                        <img src={assigneeAvatars[lead.assignedTo]} alt="assignee" className="w-8 h-8 rounded-full border-2 border-white shadow-sm"/>
+                                        <div className="flex items-center gap-3">
+                                            <a href={`mailto:${lead.email}`} onClick={e => e.stopPropagation()} className="text-slate-500 hover:text-indigo-600"><MailIcon className="w-4 h-4"/></a>
+                                            <a href={`tel:${lead.phone}`} onClick={e => e.stopPropagation()} className="text-slate-500 hover:text-indigo-600"><PhoneIcon className="w-4 h-4"/></a>
+                                            <a href={`https://${lead.linkedin}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-slate-500 hover:text-indigo-600"><LinkedinIcon className="w-4 h-4"/></a>
+                                        </div>
                                     </td>
+                                    <td className="px-4 py-3 text-slate-500">{lead.location}</td>
+                                    <td className="px-4 py-3 text-slate-500">{lead.lastContact}</td>
                                     <td className="px-4 py-3 text-right relative">
                                         <button 
                                             onClick={(e) => {
@@ -236,7 +293,7 @@ const LeadsPage: React.FC = () => {
                                                      <ActionMenuItem icon={<UserPlusIcon className="w-4 h-4" />} label="Re-assign" onClick={(e) => e.stopPropagation()} />
                                                      <ActionMenuItem icon={<StickyNoteIcon className="w-4 h-4" />} label="Log Interaction" onClick={(e) => e.stopPropagation()} />
                                                      <hr className="my-1 border-slate-100" />
-                                                     <ActionMenuItem icon={<TrashIcon className="w-4 h-4" />} label="Delete Lead" onClick={(e) => e.stopPropagation()} className="!text-red-600 hover:!bg-red-50" />
+                                                     <ActionMenuItem icon={<TrashIcon className="w-4 h-4" />} label="Delete Lead" onClick={(e) => { e.stopPropagation(); setLeads(leads.filter(l => l.id !== lead.id)); setOpenActionMenu(null); }} className="!text-red-600 hover:!bg-red-50" />
                                                 </div>
                                             </div>
                                         )}
@@ -247,6 +304,50 @@ const LeadsPage: React.FC = () => {
                     </table>
                 </div>
             </main>
+
+            {selectedIds.size > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white rounded-xl shadow-2xl flex items-center gap-4 px-6 py-3 animate-fade-in z-20">
+                    <p className="font-semibold">{selectedIds.size} selected</p>
+                    <div className="h-6 w-px bg-slate-600"></div>
+                    <Button size="sm" variant="secondary" className="!bg-slate-700 !text-white hover:!bg-slate-600" onClick={() => setIsStatusModalOpen(true)}>Change Status</Button>
+                    <Button size="sm" variant="secondary" className="!bg-red-500/20 !text-red-300 hover:!bg-red-500/30 !border-red-500/30" onClick={handleBulkDelete}>Delete</Button>
+                </div>
+            )}
+            
+            <Modal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)}>
+                <div className="p-2">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-6">Advanced Filters</h2>
+                    <div className="space-y-4">
+                        <select onChange={e => setFilters(f => ({ ...f, status: e.target.value }))} value={filters.status} className="w-full p-3 bg-slate-100 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500">
+                            <option value="All">All Statuses</option>
+                            {allStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                         <select onChange={e => setFilters(f => ({ ...f, source: e.target.value }))} value={filters.source} className="w-full p-3 bg-slate-100 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500">
+                             <option value="All">All Sources</option>
+                            {allSources.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <select onChange={e => setFilters(f => ({ ...f, aiScore: e.target.value }))} value={filters.aiScore} className="w-full p-3 bg-slate-100 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500">
+                             <option value="All">All AI Scores</option>
+                            {allAiScores.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <input type="text" placeholder="Filter by Location..." value={filters.location} onChange={e => setFilters(f => ({ ...f, location: e.target.value }))} className="w-full p-3 bg-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+                     <div className="pt-6 flex justify-end">
+                        <Button onClick={() => setIsFilterModalOpen(false)}>Apply Filters</Button>
+                    </div>
+                </div>
+            </Modal>
+            
+            <Modal isOpen={isStatusModalOpen} onClose={() => setIsStatusModalOpen(false)}>
+                <div className="p-2">
+                    <h2 className="text-xl font-bold text-slate-800 mb-4">Change Status</h2>
+                    <div className="grid grid-cols-2 gap-2">
+                        {allStatuses.map(status => (
+                            <Button key={status} variant="secondary" onClick={() => handleBulkStatusChange(status)}>{status}</Button>
+                        ))}
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

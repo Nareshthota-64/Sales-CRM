@@ -18,6 +18,9 @@ import TaskCommentsModal from '../../components/modals/TaskCommentsModal';
 import ProjectManagementModal from '../../components/modals/ProjectManagementModal';
 import { assigneeAvatars } from '../../components/data/users';
 import { mockData } from '../../utils/export';
+import CareerPulseWidget from '../../components/bde/CareerPulseWidget';
+import { careerUpdatesDB } from '../../components/data/careerUpdatesDB';
+import BriefcaseIcon from '../../components/icons/BriefcaseIcon';
 
 type Status = 'todo' | 'inprogress' | 'completed';
 type Priority = 'Important' | 'Meh' | 'OK' | 'High Priority' | 'Not that important';
@@ -276,6 +279,12 @@ const BdeDashboardPage: React.FC = () => {
     const filterMenuRef = useRef<HTMLDivElement>(null);
     const sortMenuRef = useRef<HTMLDivElement>(null);
 
+    const bdeUpdates = useMemo(() => {
+        // In a real app, this would be based on the logged-in user.
+        // For this demo, we'll assume the BDE user ID is '1'.
+        return careerUpdatesDB.filter(u => u.bdeOwnerId === '1');
+    }, []);
+
     useEffect(() => {
         try {
             const storedTasks = localStorage.getItem('bde_tasks');
@@ -455,7 +464,7 @@ const BdeDashboardPage: React.FC = () => {
     );
 
     return (
-        <div className="bg-white p-6 rounded-2xl min-h-full">
+        <div className="bg-white p-6 rounded-2xl min-h-full space-y-8">
              <TaskModal 
                 isOpen={isTaskModalOpen} 
                 onClose={() => setIsTaskModalOpen(false)} 
@@ -483,82 +492,91 @@ const BdeDashboardPage: React.FC = () => {
                 projectData={projectData}
                 onProjectDataChange={updateProjectData}
             />
-            <header className="flex flex-wrap justify-between items-start gap-4 mb-6">
-                <div>
-                     <div className="flex items-center text-sm text-slate-500 font-medium gap-1 mb-2">
-                        <HomeIcon className="w-4 h-4" />
-                        <ChevronRightIcon className="w-4 h-4" />
-                        <span>Projects</span>
-                        <ChevronRightIcon className="w-4 h-4" />
-                        <span className="text-slate-800 font-semibold">{projectData.name}</span>
+             <section className="animate-fade-in">
+                <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <BriefcaseIcon className="w-6 h-6 text-indigo-500" />
+                    AI Career Pulse
+                </h2>
+                <CareerPulseWidget updates={bdeUpdates} />
+            </section>
+            <div>
+                <header className="flex flex-wrap justify-between items-start gap-4 mb-6">
+                    <div>
+                        <div className="flex items-center text-sm text-slate-500 font-medium gap-1 mb-2">
+                            <HomeIcon className="w-4 h-4" />
+                            <ChevronRightIcon className="w-4 h-4" />
+                            <span>Projects</span>
+                            <ChevronRightIcon className="w-4 h-4" />
+                            <span className="text-slate-800 font-semibold">{projectData.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-3xl font-bold text-slate-800">{projectData.name}</h1>
+                            <span className="px-2 py-1 text-xs font-semibold rounded-md bg-indigo-100 text-indigo-700">{projectData.label}</span>
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-3xl font-bold text-slate-800">{projectData.name}</h1>
-                        <span className="px-2 py-1 text-xs font-semibold rounded-md bg-indigo-100 text-indigo-700">{projectData.label}</span>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                     <button onClick={() => handleOpenProjectModal('settings')} className="p-2.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"><SettingsIcon className="w-5 h-5" /></button>
-                     <button onClick={() => handleOpenProjectModal('history')} className="p-2.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"><GitBranchIcon className="w-5 h-5" /></button>
-                     <div onClick={() => handleOpenProjectModal('members')} className="flex -space-x-2 ml-2 cursor-pointer">
-                        {projectData.members.slice(0, 2).map(m => <img key={m.id} src={m.avatar} className="w-9 h-9 rounded-full border-2 border-white" alt="assignee" />)}
-                     </div>
-                     <button onClick={() => setIsExportModalOpen(true)} className="flex items-center gap-2 py-2 px-4 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition-colors">
-                        <ExportIcon className="w-4 h-4" />
-                        Export Data
-                    </button>
-                </div>
-            </header>
-            
-            <div className="flex justify-between items-center mb-6">
-                 <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
-                    <ViewButton view="Grid View" icon={<GridViewIcon className="w-5 h-5" />} />
-                    <ViewButton view="List View" icon={<ListViewIcon className="w-5 h-5" />} />
-                    <ViewButton view="Column View" icon={<ColumnViewIcon className="w-5 h-5" />} />
-                    <ViewButton view="Row View" icon={<RowViewIcon className="w-5 h-5" />} />
-                </div>
-                 <div className="flex items-center gap-2">
-                    <div className="relative" ref={filterMenuRef}>
-                        <button onClick={() => setShowFilterMenu(!showFilterMenu)} className="flex items-center gap-2 py-2 px-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm font-semibold">
-                            <FilterIcon className="w-4 h-4" /> Filter
-                            {filterPriority !== 'All' && <span className="w-2 h-2 rounded-full bg-indigo-500"></span>}
+                        <button onClick={() => handleOpenProjectModal('settings')} className="p-2.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"><SettingsIcon className="w-5 h-5" /></button>
+                        <button onClick={() => handleOpenProjectModal('history')} className="p-2.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"><GitBranchIcon className="w-5 h-5" /></button>
+                        <div onClick={() => handleOpenProjectModal('members')} className="flex -space-x-2 ml-2 cursor-pointer">
+                            {projectData.members.slice(0, 2).map(m => <img key={m.id} src={m.avatar} className="w-9 h-9 rounded-full border-2 border-white" alt="assignee" />)}
+                        </div>
+                        <button onClick={() => setIsExportModalOpen(true)} className="flex items-center gap-2 py-2 px-4 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition-colors">
+                            <ExportIcon className="w-4 h-4" />
+                            Export Data
                         </button>
-                        {showFilterMenu && (
-                            <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-10 animate-fade-in" style={{ animationDuration: '0.2s'}}>
-                                <button onClick={() => { setFilterPriority('All'); setShowFilterMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">All Priorities</button>
-                                {allPriorities.map(p => (
-                                    <button key={p} onClick={() => { setFilterPriority(p); setShowFilterMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{p}</button>
-                                ))}
-                            </div>
-                        )}
                     </div>
-                     <div className="relative" ref={sortMenuRef}>
-                        <button onClick={() => setShowSortMenu(!showSortMenu)} className="flex items-center gap-2 py-2 px-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm font-semibold"><SortIcon className="w-4 h-4" /> Sort</button>
-                         {showSortMenu && (
-                            <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-10 animate-fade-in" style={{ animationDuration: '0.2s'}}>
-                                <button onClick={() => { setSortOrder('default'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Default</button>
-                                <button onClick={() => { setSortOrder('title-asc'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Title (A-Z)</button>
-                                <button onClick={() => { setSortOrder('title-desc'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Title (Z-A)</button>
-                                <button onClick={() => { setSortOrder('comments-desc'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Comments (High-Low)</button>
-                                <button onClick={() => { setSortOrder('comments-asc'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Comments (Low-High)</button>
-                            </div>
-                        )}
+                </header>
+                
+                <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                        <ViewButton view="Grid View" icon={<GridViewIcon className="w-5 h-5" />} />
+                        <ViewButton view="List View" icon={<ListViewIcon className="w-5 h-5" />} />
+                        <ViewButton view="Column View" icon={<ColumnViewIcon className="w-5 h-5" />} />
+                        <ViewButton view="Row View" icon={<RowViewIcon className="w-5 h-5" />} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="relative" ref={filterMenuRef}>
+                            <button onClick={() => setShowFilterMenu(!showFilterMenu)} className="flex items-center gap-2 py-2 px-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm font-semibold">
+                                <FilterIcon className="w-4 h-4" /> Filter
+                                {filterPriority !== 'All' && <span className="w-2 h-2 rounded-full bg-indigo-500"></span>}
+                            </button>
+                            {showFilterMenu && (
+                                <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-10 animate-fade-in" style={{ animationDuration: '0.2s'}}>
+                                    <button onClick={() => { setFilterPriority('All'); setShowFilterMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">All Priorities</button>
+                                    {allPriorities.map(p => (
+                                        <button key={p} onClick={() => { setFilterPriority(p); setShowFilterMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{p}</button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="relative" ref={sortMenuRef}>
+                            <button onClick={() => setShowSortMenu(!showSortMenu)} className="flex items-center gap-2 py-2 px-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm font-semibold"><SortIcon className="w-4 h-4" /> Sort</button>
+                            {showSortMenu && (
+                                <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-10 animate-fade-in" style={{ animationDuration: '0.2s'}}>
+                                    <button onClick={() => { setSortOrder('default'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Default</button>
+                                    <button onClick={() => { setSortOrder('title-asc'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Title (A-Z)</button>
+                                    <button onClick={() => { setSortOrder('title-desc'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Title (Z-A)</button>
+                                    <button onClick={() => { setSortOrder('comments-desc'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Comments (High-Low)</button>
+                                    <button onClick={() => { setSortOrder('comments-asc'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Comments (Low-High)</button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
+                
+                <main>
+                    {activeView === 'Column View' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <KanbanColumn title="To Do" status="todo" tasks={getTasksForColumn('todo')} onAddTask={handleAddTask} onDragOver={handleDragOver} onDrop={handleDrop} onDragStart={handleDragStart} draggedTask={draggedTask} onOpenComments={handleOpenComments} />
+                            <KanbanColumn title="In Progress" status="inprogress" tasks={getTasksForColumn('inprogress')} onAddTask={handleAddTask} onDragOver={handleDragOver} onDrop={handleDrop} onDragStart={handleDragStart} draggedTask={draggedTask} onOpenComments={handleOpenComments} />
+                            <KanbanColumn title="Completed" status="completed" tasks={getTasksForColumn('completed')} onAddTask={handleAddTask} onDragOver={handleDragOver} onDrop={handleDrop} onDragStart={handleDragStart} draggedTask={draggedTask} onOpenComments={handleOpenComments} />
+                        </div>
+                    )}
+                    {activeView === 'Grid View' && <GridView tasks={filteredAndSortedTasks} onOpenComments={handleOpenComments} />}
+                    {activeView === 'List View' && <ListView tasks={filteredAndSortedTasks} onOpenComments={handleOpenComments} />}
+                    {activeView === 'Row View' && <RowView tasks={filteredAndSortedTasks} onOpenComments={handleOpenComments} />}
+                </main>
             </div>
-            
-            <main>
-                {activeView === 'Column View' && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <KanbanColumn title="To Do" status="todo" tasks={getTasksForColumn('todo')} onAddTask={handleAddTask} onDragOver={handleDragOver} onDrop={handleDrop} onDragStart={handleDragStart} draggedTask={draggedTask} onOpenComments={handleOpenComments} />
-                        <KanbanColumn title="In Progress" status="inprogress" tasks={getTasksForColumn('inprogress')} onAddTask={handleAddTask} onDragOver={handleDragOver} onDrop={handleDrop} onDragStart={handleDragStart} draggedTask={draggedTask} onOpenComments={handleOpenComments} />
-                        <KanbanColumn title="Completed" status="completed" tasks={getTasksForColumn('completed')} onAddTask={handleAddTask} onDragOver={handleDragOver} onDrop={handleDrop} onDragStart={handleDragStart} draggedTask={draggedTask} onOpenComments={handleOpenComments} />
-                    </div>
-                )}
-                {activeView === 'Grid View' && <GridView tasks={filteredAndSortedTasks} onOpenComments={handleOpenComments} />}
-                {activeView === 'List View' && <ListView tasks={filteredAndSortedTasks} onOpenComments={handleOpenComments} />}
-                {activeView === 'Row View' && <RowView tasks={filteredAndSortedTasks} onOpenComments={handleOpenComments} />}
-            </main>
         </div>
     );
 };

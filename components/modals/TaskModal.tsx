@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
-import { users } from '../data/users';
+// FIX: Correctly import `usersData` and alias it as `users`.
+import { usersData as users } from '../data/users';
 
 const allPriorities = ['High Priority', 'Important', 'OK', 'Meh', 'Not that important'];
 

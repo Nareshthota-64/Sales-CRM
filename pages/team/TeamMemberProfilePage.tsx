@@ -5,6 +5,10 @@ import Button from '../../components/ui/Button';
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon';
 import MessageSquareIcon from '../../components/icons/MessageSquareIcon';
 import ProgressBar from '../../components/ui/ProgressBar';
+import DollarSignIcon from '../../components/icons/DollarSignIcon';
+import PhoneCallIcon from '../../components/icons/PhoneCallIcon';
+import CheckCircleIcon from '../../components/icons/CheckCircleIcon';
+
 
 const StatCard: React.FC<{ label: string; value: string | number; }> = ({ label, value }) => (
     <div className="bg-slate-50 p-4 rounded-lg text-center">
@@ -12,6 +16,12 @@ const StatCard: React.FC<{ label: string; value: string | number; }> = ({ label,
         <p className="text-2xl font-bold text-slate-800">{value}</p>
     </div>
 );
+
+const activityFeed = [
+    { icon: <DollarSignIcon className="w-5 h-5 text-green-600" />, text: 'Closed deal with Innovatech ($50k ARR)', time: '2 days ago' },
+    { icon: <PhoneCallIcon className="w-5 h-5 text-blue-600" />, text: 'Logged a 30-minute discovery call with Synergy LLC', time: '3 days ago' },
+    { icon: <CheckCircleIcon className="w-5 h-5 text-indigo-600" />, text: 'Converted lead "Quantum Leap" to a company', time: '1 week ago' },
+];
 
 const TeamMemberProfilePage: React.FC = () => {
     const { memberId } = useParams<{ memberId: string }>();
@@ -35,8 +45,8 @@ const TeamMemberProfilePage: React.FC = () => {
     const quotaAttainment = member.stats ? Math.round((member.stats.closedARR / 150000) * 100) : 0;
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <header className="mb-8 animate-fade-in">
+        <div className="max-w-4xl mx-auto space-y-8">
+            <header className="animate-fade-in">
                 <div className="flex items-center text-sm text-slate-500 font-medium gap-1 mb-4">
                     <Link to="/team" className="hover:text-slate-800">Team Directory</Link>
                     <ChevronRightIcon className="w-4 h-4" />
@@ -72,6 +82,21 @@ const TeamMemberProfilePage: React.FC = () => {
                     </div>
                 </div>
             </main>
+
+            <div className="bg-white p-8 rounded-2xl shadow-sm animate-fade-in" style={{ animationDelay: '200ms' }}>
+                 <h2 className="text-2xl font-bold text-slate-800 mb-6">Recent Activity</h2>
+                 <div className="space-y-4">
+                    {activityFeed.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-slate-50/70 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                {item.icon}
+                                <p className="text-sm text-slate-700">{item.text}</p>
+                            </div>
+                            <p className="text-xs text-slate-500">{item.time}</p>
+                        </div>
+                    ))}
+                 </div>
+            </div>
         </div>
     );
 };

@@ -15,7 +15,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ title, subtitle, children }) =>
         <div className="flex justify-center items-center mb-8 animate-fade-in">
           <img src="https://media.licdn.com/dms/image/v2/D4D0BAQEQHDp3om_eug/company-logo_200_200/company-logo_200_200/0/1702105920324/highq_labs_pvt_ltd_logo?e=2147483647&v=beta&t=scIhNIvxzHNCJLSbJEfkjTHSzC42y1kqWB_Lz0UOTvM" alt="HighQ-Labs Logo" className="w-12 h-12" />
           <h1 className="ml-4 text-3xl font-bold text-slate-800 tracking-tight">
-            BDE AI System
+            Sales CRM
           </h1>
         </div>
         

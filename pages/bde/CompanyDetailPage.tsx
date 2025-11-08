@@ -1,26 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon';
 import PlusIcon from '../../components/icons/PlusIcon';
-import StickyNoteIcon from '../../components/icons/StickyNoteIcon';
 import ShieldCheckIcon from '../../components/icons/ShieldCheckIcon';
 import ShieldAlertIcon from '../../components/icons/ShieldAlertIcon';
 import DollarSignIcon from '../../components/icons/DollarSignIcon';
 import CalendarIcon from '../../components/icons/CalendarIcon';
 import SparklesIcon from '../../components/icons/SparklesIcon';
-import PhoneIcon from '../../components/icons/PhoneIcon';
-import MailIcon from '../../components/icons/MailIcon';
 import HandshakeIcon from '../../components/icons/HandshakeIcon';
+import { getCompanyById, updateCompany, CompanyDetail, AccountHealth } from '../../components/data/companiesDB';
+import { getActivityIcon, Activity, ActivityType } from '../../components/data/leadsDB';
+import SpinnerIcon from '../../components/icons/SpinnerIcon';
+import UsersIcon from '../../components/icons/UsersIcon';
+import MessageSquareIcon from '../../components/icons/MessageSquareIcon';
+import FileTextIcon from '../../components/icons/FileTextIcon';
+import TrendingUpIcon from '../../components/icons/TrendingUpIcon';
+import TrendingDownIcon from '../../components/icons/TrendingDownIcon';
 
-// Types & Data (Re-using from CompaniesPage for consistency)
-type AccountHealth = 'Healthy' | 'Needs Attention' | 'At Risk';
-
-const companiesData = [
-  { id: 'comp-1', name: 'Innovatech', logo: 'https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600', description: 'Leading provider of enterprise SaaS solutions, specializing in cloud-based analytics and business intelligence.', health: 'Healthy', arr: 50000, conversionDate: 'Aug 15, 2023' },
-  { id: 'comp-2', name: 'Quantum Leap', logo: 'https://tailwindui.com/img/logos/mark.svg?color=purple&shade=500', description: 'Pioneering quantum computing technologies.', health: 'Healthy', arr: 120000, conversionDate: 'Jun 20, 2023' },
-  { id: 'comp-3', name: 'DataCorp', logo: 'https://tailwindui.com/img/logos/mark.svg?color=green&shade=500', description: 'Big data and analytics platform.', health: 'Needs Attention', arr: 20000, conversionDate: 'Oct 05, 2023' },
-];
 
 const healthStyles: Record<AccountHealth, { icon: React.ReactNode; text: string; bg: string; }> = {
   Healthy: { icon: <ShieldCheckIcon className="w-5 h-5 text-green-700" />, text: 'text-green-700', bg: 'bg-green-100' },
@@ -28,29 +25,27 @@ const healthStyles: Record<AccountHealth, { icon: React.ReactNode; text: string;
   'At Risk': { icon: <ShieldAlertIcon className="w-5 h-5 text-red-700" />, text: 'text-red-700', bg: 'bg-red-100' },
 };
 
-const deals = [
-    { name: 'Initial Enterprise License', stage: 'Closed Won', amount: 50000, closeDate: '2023-08-15' },
-    { name: 'Analytics Pro Add-on', stage: 'In Progress', amount: 15000, closeDate: '2024-03-20' },
-];
+const Widget: React.FC<{ title: string; icon: React.ReactElement<{ className?: string }>; children: React.ReactNode; delay: number }> = ({ title, icon, children, delay }) => (
+    <div className="bg-white p-6 rounded-2xl shadow-sm animate-fade-in" style={{ animationDelay: `${delay}ms`}}>
+        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+            {React.cloneElement(icon, { className: 'w-5 h-5 text-slate-500' })}
+            {title}
+        </h2>
+        {children}
+    </div>
+);
 
-const contacts = [
-    { name: 'John Doe', title: 'VP of Engineering', avatar: 'https://i.pravatar.cc/150?img=1' },
-    { name: 'Sarah Jenkins', title: 'Project Manager', avatar: 'https://i.pravatar.cc/150?img=3' },
-];
+// FIX: Changed 'role' prop to 'title' to match the data structure from companiesDB.
+const PersonCard: React.FC<{ name: string; title: string; avatar: string }> = ({ name, title, avatar }) => (
+    <div className="flex items-center gap-3">
+        <img src={avatar} alt={name} className="w-8 h-8 rounded-full" />
+        <div>
+            <p className="font-semibold text-slate-800 text-sm">{name}</p>
+            <p className="text-xs text-slate-500">{title}</p>
+        </div>
+    </div>
+);
 
-const activities = [
-    { type: 'note', content: 'Customer is very happy with the platform. Potential for upsell next quarter.', author: 'Amélie Laurent', time: '3 days ago', icon: <StickyNoteIcon className="w-5 h-5 text-yellow-600" /> },
-    { type: 'call', content: 'Q4 check-in call. Discussed roadmap and upcoming features.', author: 'Amélie Laurent', time: '1 week ago', icon: <PhoneIcon className="w-5 h-5 text-blue-600" /> },
-    { type: 'email', content: 'Sent over contract renewal documents for review.', author: 'System', time: '2 weeks ago', icon: <MailIcon className="w-5 h-5 text-slate-500" /> },
-];
-
-const aiInsights = [
-    { title: 'Upsell Opportunity', content: 'Usage of the analytics module has tripled in the last 30 days. Propose an upgrade to the Premium Analytics Suite.', type: 'positive' },
-    { title: 'Expansion Signal', content: 'Company just posted a new job for "Head of Marketing". This is a great opportunity to introduce our marketing automation tools.', type: 'positive' },
-    { title: 'Retention Alert', content: 'No admin-level logins detected in the past 14 days. Suggest a proactive check-in to ensure they are getting value.', type: 'negative' },
-];
-
-// Sub-components
 const MetricCard: React.FC<{ icon: React.ReactNode; label: string; value: string | React.ReactNode; delay: number }> = ({ icon, label, value, delay }) => (
     <div className="flex items-center gap-4 bg-slate-50/70 p-4 rounded-xl animate-fade-in" style={{ animationDelay: `${delay}ms`}}>
         <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-500 flex-shrink-0 shadow-sm">{icon}</div>
@@ -65,7 +60,69 @@ const MetricCard: React.FC<{ icon: React.ReactNode; label: string; value: string
 const CompanyDetailPage: React.FC = () => {
     const { companyId } = useParams<{ companyId: string }>();
     const navigate = useNavigate();
-    const company = companiesData.find(c => c.id === companyId) || companiesData[0]; // Default to first for demo
+    const [company, setCompany] = useState<CompanyDetail | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [interactionType, setInteractionType] = useState<ActivityType>('note');
+    const [noteContent, setNoteContent] = useState('');
+
+    useEffect(() => {
+        setIsLoading(true);
+        const loadCompany = () => {
+            if (companyId) {
+                const companyData = getCompanyById(companyId);
+                setCompany(companyData || null);
+            }
+            setIsLoading(false);
+        };
+        
+        loadCompany();
+
+        window.addEventListener('storage', loadCompany);
+        return () => window.removeEventListener('storage', loadCompany);
+    }, [companyId]);
+
+    const handleUpdateCompany = (updatedCompany: CompanyDetail) => {
+        setCompany(updatedCompany);
+        updateCompany(updatedCompany);
+    };
+
+    const addActivity = (type: ActivityType, content: string) => {
+        if (!company || !content.trim()) return;
+
+        const newActivity: Activity = {
+            id: `c-act-${Date.now()}`,
+            type: type,
+            content: content,
+            author: 'Amélie Laurent', // Current user
+            time: 'Just now',
+        };
+
+        const updatedCompany = {
+            ...company,
+            activity: [newActivity, ...company.activity],
+        };
+        handleUpdateCompany(updatedCompany);
+    };
+
+    const handleLogInteraction = (e: React.FormEvent) => {
+        e.preventDefault();
+        addActivity(interactionType, noteContent);
+        setNoteContent('');
+    };
+
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-96"><SpinnerIcon className="w-8 h-8 text-indigo-500" /></div>;
+    }
+
+    if (!company) {
+        return (
+            <div className="text-center p-8">
+                <h2 className="text-2xl font-bold text-slate-800">Company not found</h2>
+                <p className="text-slate-500">The company you are looking for does not exist.</p>
+                <Link to="/bde/companies"><Button className="mt-4">Back to Companies</Button></Link>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-7xl mx-auto space-y-8">
@@ -108,14 +165,8 @@ const CompanyDetailPage: React.FC = () => {
                      <div className="bg-white p-6 rounded-2xl shadow-sm animate-fade-in" style={{ animationDelay: '400ms' }}>
                         <h3 className="text-lg font-bold text-slate-800 mb-4">Key Contacts</h3>
                         <div className="space-y-3">
-                            {contacts.map(contact => (
-                                <div key={contact.name} className="flex items-center gap-3">
-                                    <img src={contact.avatar} alt={contact.name} className="w-10 h-10 rounded-full" />
-                                    <div>
-                                        <p className="font-semibold text-slate-800 text-sm">{contact.name}</p>
-                                        <p className="text-xs text-slate-500">{contact.title}</p>
-                                    </div>
-                                </div>
+                            {company.contacts.map(contact => (
+                                <PersonCard key={contact.name} {...contact} />
                             ))}
                         </div>
                     </div>
@@ -123,10 +174,22 @@ const CompanyDetailPage: React.FC = () => {
 
                 {/* Center Column */}
                 <main className="lg:col-span-2 space-y-8">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm animate-fade-in" style={{ animationDelay: '300ms' }}>
-                        <h3 className="text-lg font-bold text-slate-800 mb-4">Deal History</h3>
+                    <Widget title="Log Interaction" icon={<PlusIcon />} delay={250}>
+                        <div className="flex gap-2 mb-4 border-b border-slate-200">
+                           {(['note', 'call', 'meeting', 'email'] as ActivityType[]).map(type => (
+                               <button key={type} onClick={() => setInteractionType(type)} className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold capitalize border-b-2 ${interactionType === type ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+                                   {getActivityIcon(type)} {type}
+                               </button>
+                           ))}
+                        </div>
+                        <form onSubmit={handleLogInteraction}>
+                            <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} placeholder={`Add a ${interactionType} log...`} rows={4} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                            <Button className="w-full mt-4" type="submit" leftIcon={<PlusIcon className="w-4 h-4"/>}>Add to Timeline</Button>
+                        </form>
+                    </Widget>
+                    <Widget title="Deal History" icon={<HandshakeIcon />} delay={300}>
                         <div className="space-y-2">
-                           {deals.map(deal => (
+                           {company.deals.map(deal => (
                                 <div key={deal.name} className="grid grid-cols-4 gap-4 items-center p-3 bg-slate-50 rounded-lg">
                                     <p className="col-span-2 font-semibold text-slate-700">{deal.name}</p>
                                     <p className="text-sm text-slate-600">{deal.stage}</p>
@@ -134,17 +197,16 @@ const CompanyDetailPage: React.FC = () => {
                                 </div>
                            ))}
                         </div>
-                    </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm animate-fade-in" style={{ animationDelay: '400ms' }}>
-                        <h3 className="text-lg font-bold text-slate-800 mb-6">Activity Timeline</h3>
+                    </Widget>
+                    <Widget title="Activity Timeline" icon={<MessageSquareIcon />} delay={400}>
                          <div className="relative pl-6">
                             <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-slate-200"></div>
-                            {activities.map((item, index) => (
-                                <div key={index} className="relative mb-8">
+                            {company.activity.map((item, index) => (
+                                <div key={item.id} className="relative mb-8">
                                     <div className="absolute -left-[35px] top-0 w-8 h-8 bg-white border-4 border-slate-200 rounded-full flex items-center justify-center">
-                                        {item.icon}
+                                        {getActivityIcon(item.type)}
                                     </div>
-                                    <div className="p-4 rounded-lg">
+                                    <div className="bg-slate-50 p-4 rounded-lg">
                                         <p className="text-sm text-slate-700">{item.content}</p>
                                         <div className="flex justify-between items-center mt-2 text-xs text-slate-500">
                                             <span>by {item.author}</span>
@@ -154,10 +216,10 @@ const CompanyDetailPage: React.FC = () => {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </Widget>
                 </main>
                 
-                {/* AI Insights Column - Spans all rows on small screens */}
+                {/* AI Insights Column */}
                 <aside className="lg:col-span-3 xl:col-span-1">
                     <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6 rounded-2xl shadow-sm sticky top-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
                          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -165,12 +227,30 @@ const CompanyDetailPage: React.FC = () => {
                             AI Growth Insights
                         </h3>
                         <div className="space-y-4">
-                            {aiInsights.map(insight => (
-                                <div key={insight.title} className={`p-4 rounded-lg ${insight.type === 'positive' ? 'bg-green-100/70' : 'bg-red-100/70'}`}>
-                                    <p className={`font-semibold text-sm ${insight.type === 'positive' ? 'text-green-800' : 'text-red-800'}`}>{insight.title}</p>
-                                    <p className={`text-xs mt-1 ${insight.type === 'positive' ? 'text-green-700' : 'text-red-700'}`}>{insight.content}</p>
+                           {company.aiInsights.positive.length > 0 && (
+                             <div>
+                                <h4 className="font-semibold text-sm text-green-800 mb-2 flex items-center gap-1.5"><TrendingUpIcon className="w-4 h-4"/>Positive Signals</h4>
+                                <div className="space-y-2">
+                                    {company.aiInsights.positive.map((tip, index) => (
+                                        <div key={`pos-${index}`} className="bg-green-100/70 p-3 rounded-lg">
+                                            <p className="text-xs text-green-900">{tip}</p>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            </div>
+                           )}
+                           {company.aiInsights.negative.length > 0 && (
+                            <div>
+                                <h4 className="font-semibold text-sm text-red-800 mb-2 flex items-center gap-1.5"><TrendingDownIcon className="w-4 h-4"/>Potential Risks</h4>
+                                 <div className="space-y-2">
+                                    {company.aiInsights.negative.map((tip, index) => (
+                                        <div key={`neg-${index}`} className="bg-red-100/70 p-3 rounded-lg">
+                                            <p className="text-xs text-red-900">{tip}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                           )}
                         </div>
                     </div>
                 </aside>

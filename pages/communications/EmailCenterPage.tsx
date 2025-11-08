@@ -27,7 +27,7 @@ const initialEmailsData = {
         { id: 'sent-1', to: 'John Doe', subject: 'Following up from Innovatech', body: 'Hi John, Just following up on our conversation from last week. Let me know if you have any questions.', date: '4 hours ago', read: true },
     ],
     templates: [
-        { id: 'temp-1', name: 'Initial Outreach', subject: 'Introduction from BDE AI System', content: 'Hi [Name],\n\nMy name is Amélie and I\'m with BDE AI System. I came across your company and was impressed by [something specific].\n\nI believe our solution could help [Company Name] with [specific pain point].\n\nWould you be open to a brief 15-minute call next week to explore this further?\n\nBest,\nAmélie' },
+        { id: 'temp-1', name: 'Initial Outreach', subject: 'Introduction from Sales CRM', content: 'Hi [Name],\n\nMy name is Amélie and I\'m with Sales CRM. I came across your company and was impressed by [something specific].\n\nI believe our solution could help [Company Name] with [specific pain point].\n\nWould you be open to a brief 15-minute call next week to explore this further?\n\nBest,\nAmélie' },
         { id: 'temp-2', name: 'Post-Demo Follow-Up', subject: 'Following our demo', content: 'Hi [Name],\n\nThanks for your time today. I hope you found the demo insightful.\n\nAs promised, I\'ve attached some additional information on the features we discussed.\n\nLet me know if you have any questions.\n\nBest,\nAmélie' },
     ],
 };

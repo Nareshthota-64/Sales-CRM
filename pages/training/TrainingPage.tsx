@@ -5,7 +5,7 @@ import BookOpenIcon from '../../components/icons/BookOpenIcon';
 import SparklesIcon from '../../components/icons/SparklesIcon';
 
 const modules = [
-    { id: 1, title: 'BDE AI System Mastery', progress: 100, status: 'Completed' },
+    { id: 1, title: 'Sales CRM Mastery', progress: 100, status: 'Completed' },
     { id: 2, title: 'Advanced Prospecting Techniques', progress: 75, status: 'In Progress' },
     { id: 3, title: 'Effective Discovery Calls', progress: 0, status: 'Not Started' },
     { id: 4, title: 'Advanced Negotiation Tactics', progress: 0, status: 'Not Started' },

@@ -5,8 +5,9 @@ import MessageSquareIcon from '../../components/icons/MessageSquareIcon';
 import CheckCheckIcon from '../../components/icons/CheckCheckIcon';
 import BotIcon from '../../components/icons/BotIcon';
 import XIcon from '../../components/icons/XIcon';
+import BriefcaseIcon from '../../components/icons/BriefcaseIcon';
 
-type NotificationType = 'new_lead' | 'chat_mention' | 'conversion_approved' | 'ai_insight';
+type NotificationType = 'new_lead' | 'chat_mention' | 'conversion_approved' | 'ai_insight' | 'career_update';
 
 interface Notification {
     id: string;
@@ -20,9 +21,11 @@ interface Notification {
 }
 
 const initialNotifications: Notification[] = [
+    { id: '6', type: 'career_update', title: 'Job Change: John Doe', description: 'John Doe has started a new position at Apex Innovations.', time: '2h ago', read: false, link: '/bde/leads/lead-1' },
     { id: '1', type: 'new_lead', title: 'New Hot Lead Assigned', description: 'John Doe from Innovatech looks like a great fit.', time: '2m ago', read: false, link: '/bde/leads/lead-1' },
     { id: '2', type: 'chat_mention', title: 'Mention in #sales-team', description: 'David Garcia mentioned you: "@Amélie can you check these numbers?"', time: '15m ago', read: false, link: '/chat' },
     { id: '3', type: 'conversion_approved', title: 'Conversion Approved!', description: 'Your request to convert Quantum Leap has been approved by management.', time: '1h ago', read: false, link: '/bde/companies/comp-2' },
+    { id: '7', type: 'career_update', title: 'Hiring Signal: DataCorp', description: 'DataCorp is hiring for 5 new Data Scientists.', time: '1d ago', read: true, link: '/bde/leads/lead-3' },
     { id: '4', type: 'ai_insight', title: 'New AI Insight', description: 'AI suggests an upsell opportunity for DataCorp based on recent usage.', time: '3h ago', read: true, link: '/bde/companies/comp-3' },
     { id: '5', type: 'new_lead', title: 'New Lead Assigned', description: 'Jane Smith from Solutions Inc. has been assigned to you.', time: '1d ago', read: true, link: '/bde/leads/lead-2' },
 ];
@@ -32,6 +35,7 @@ const notificationIcons: Record<NotificationType, React.ReactNode> = {
     chat_mention: <MessageSquareIcon className="w-5 h-5 text-blue-500" />,
     conversion_approved: <CheckCheckIcon className="w-5 h-5 text-green-500" />,
     ai_insight: <BotIcon className="w-5 h-5 text-purple-500" />,
+    career_update: <BriefcaseIcon className="w-5 h-5 text-slate-700" />,
 };
 
 const NotificationItem: React.FC<{ notification: Notification; onDismiss: (id: string) => void; onMarkAsRead: (id: string) => void; index: number }> = ({ notification, onDismiss, onMarkAsRead, index }) => {

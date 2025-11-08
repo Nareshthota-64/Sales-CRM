@@ -48,7 +48,6 @@ function App() {
     <HashRouter>
       <Routes>
         {/* Auth Routes */}
-        <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />

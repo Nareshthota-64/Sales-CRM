@@ -9,6 +9,9 @@ import PlusIcon from '../../components/icons/PlusIcon';
 import Button from '../../components/ui/Button';
 import TaskModal from '../../components/modals/TaskModal';
 import { assigneeAvatars } from '../../components/data/users';
+import CareerPulseWidget from '../../components/bde/CareerPulseWidget';
+import { careerUpdatesDB } from '../../components/data/careerUpdatesDB';
+import BriefcaseIcon from '../../components/icons/BriefcaseIcon';
 
 const kpiData = [
   { title: "Total ARR", value: "$4.8M", change: "+12.5% MoM", icon: <DollarSignIcon className="w-6 h-6 text-green-600" />, color: "bg-green-100", delay: 100 },
@@ -184,6 +187,14 @@ const MasterDashboardPage: React.FC = () => {
 
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {kpiData.map(kpi => <KpiCard key={kpi.title} {...kpi} />)}
+            </section>
+            
+            <section className="animate-fade-in" style={{ animationDelay: '500ms' }}>
+                <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <BriefcaseIcon className="w-6 h-6 text-indigo-500" />
+                    AI Career Pulse
+                </h2>
+                <CareerPulseWidget updates={careerUpdatesDB} showBdeOwner={true} />
             </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
